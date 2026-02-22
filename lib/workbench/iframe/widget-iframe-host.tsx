@@ -203,18 +203,26 @@ export function WidgetIframeHost({
       };
 
       const runServerCall = async (): Promise<CallToolResponse> => {
+        const abortController = new AbortController();
+
         store.setActiveToolCall({
           toolName: name,
           delay: 0,
           startTime: Date.now(),
+          cancelFn: () => {
+            abortController.abort();
+          },
         });
 
         try {
-          const response = await callMcpTool({
-            tool: name,
-            args,
-            serverUrl: useWorkbenchStore.getState().mockConfig.serverUrl,
-          });
+          const response = await callMcpTool(
+            {
+              tool: name,
+              args,
+              serverUrl: useWorkbenchStore.getState().mockConfig.serverUrl,
+            },
+            { signal: abortController.signal }
+          );
 
           if (!response.success) {
             return finalizeToolResult({
