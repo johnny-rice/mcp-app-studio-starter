@@ -764,24 +764,29 @@ export function WidgetIframeHost({
     globals.userAgent,
   ]);
 
+  const toolInputStr = JSON.stringify(globals.toolInput);
   useEffect(() => {
     const bridge = mcpBridgeRef.current;
-    if (!bridge || !mcpInitializedRef.current) return;
-    void bridge.sendToolInput({ arguments: globals.toolInput });
-  }, [globals.toolInput]);
+    if (!bridge || !mcpInitializedRef.current || !toolInputStr) return;
+    void bridge.sendToolInput({ arguments: JSON.parse(toolInputStr) });
+  }, [toolInputStr]);
 
+  const toolOutputStr = JSON.stringify(globals.toolOutput ?? null);
+  const toolResponseMetadataStr = JSON.stringify(globals.toolResponseMetadata ?? null);
   useEffect(() => {
     const bridge = mcpBridgeRef.current;
     if (!bridge || !mcpInitializedRef.current) return;
-    if (!globals.toolOutput) return;
+    
+    const parsedOutput = JSON.parse(toolOutputStr);
+    if (!parsedOutput) return;
 
     void bridge.sendToolResult(
       toMcpToolResultParams({
-        structuredContent: globals.toolOutput,
-        _meta: globals.toolResponseMetadata ?? undefined,
+        structuredContent: parsedOutput,
+        _meta: JSON.parse(toolResponseMetadataStr) ?? undefined,
       }) as any,
     );
-  }, [globals.toolOutput, globals.toolResponseMetadata]);
+  }, [toolOutputStr, toolResponseMetadataStr]);
 
   useEffect(() => {
     setIframeKey((k) => k + 1);

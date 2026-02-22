@@ -80,6 +80,8 @@ export function WorkbenchShell() {
   }, [isSDKGuideOpen, setSDKGuideOpen]);
 
   React.useEffect(() => {
+    const isMac = /mac/i.test(navigator.userAgent);
+    
     const handleKeyDown = (e: KeyboardEvent) => {
       const activeElement = document.activeElement;
       if (
@@ -91,7 +93,6 @@ export function WorkbenchShell() {
         return;
       }
 
-      const isMac = /mac/i.test(navigator.userAgent);
       const modKey = isMac ? e.metaKey : e.ctrlKey;
 
       if (modKey && e.shiftKey && e.key.toLowerCase() === "d") {

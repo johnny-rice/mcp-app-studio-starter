@@ -174,11 +174,12 @@ export function CodeBlock({
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(
     () => htmlCache.get(cacheKey) ?? null,
   );
+  const [prevCacheKey, setPrevCacheKey] = useState(cacheKey);
 
-  useEffect(() => {
-    const cached = htmlCache.get(cacheKey);
-    setHighlightedHtml(cached ?? null);
-  }, [cacheKey]);
+  if (prevCacheKey !== cacheKey) {
+    setPrevCacheKey(cacheKey);
+    setHighlightedHtml(htmlCache.get(cacheKey) ?? null);
+  }
 
   useEffect(() => {
     const cached = htmlCache.get(cacheKey);

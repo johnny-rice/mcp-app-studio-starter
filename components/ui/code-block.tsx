@@ -3,7 +3,6 @@
 import { useTheme } from "next-themes";
 import type React from "react";
 import { useEffect, useState } from "react";
-import { codeToHtml } from "shiki";
 import { cn } from "@/lib/ui/cn";
 
 export type CodeBlockProps = {
@@ -57,6 +56,7 @@ function CodeBlockCode({
         return;
       }
 
+      const { codeToHtml } = await import("shiki");
       const html = await codeToHtml(code, { lang: language, theme });
       setHighlightedHtml(html);
     }
