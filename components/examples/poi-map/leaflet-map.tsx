@@ -85,6 +85,38 @@ interface MapControllerProps {
   pois: POI[];
 }
 
+function MapViewportStabilizer() {
+  const map = useMap();
+
+  useEffect(() => {
+    const rafId = requestAnimationFrame(() => {
+      map.invalidateSize();
+    });
+
+    const container = map.getContainer();
+    let cleanup: (() => void) | null = null;
+
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(() => {
+        map.invalidateSize();
+      });
+      observer.observe(container);
+      cleanup = () => observer.disconnect();
+    } else {
+      const onResize = () => map.invalidateSize();
+      window.addEventListener("resize", onResize);
+      cleanup = () => window.removeEventListener("resize", onResize);
+    }
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      cleanup?.();
+    };
+  }, [map]);
+
+  return null;
+}
+
 function MapController({ selectedPoiId, pois }: MapControllerProps) {
   const map = useMap();
   const prevSelectedIdRef = useRef<string | null>(null);
@@ -168,6 +200,7 @@ export default function LeafletMap({
       >
         <TileLayer url={tileUrl} attribution={attribution} />
         <MapEvents onMoveEnd={onMoveEnd} />
+        <MapViewportStabilizer />
         <MapController selectedPoiId={selectedPoiId} pois={pois} />
         {pois.map((poi) => (
           <POIMarker

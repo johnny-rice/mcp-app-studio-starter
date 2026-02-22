@@ -10,16 +10,30 @@ interface BundleState {
 
 const bundleCache = new Map<string, string>();
 
-export function buildBundleRequestPath(
-  componentId: string,
-  currentLocationSearch: string,
-): string {
+function isDemoBundleRequest(currentLocationSearch: string): boolean {
   const currentParams = new URLSearchParams(
     currentLocationSearch.startsWith("?")
       ? currentLocationSearch.slice(1)
       : currentLocationSearch,
   );
-  const isDemoMode = currentParams.get("demo") === "true";
+
+  return currentParams.get("demo") === "true";
+}
+
+export function buildBundleCacheKey(
+  componentId: string,
+  currentLocationSearch: string,
+): string {
+  return `${encodeURIComponent(componentId)}::${
+    isDemoBundleRequest(currentLocationSearch) ? "demo" : "runtime"
+  }`;
+}
+
+export function buildBundleRequestPath(
+  componentId: string,
+  currentLocationSearch: string,
+): string {
+  const isDemoMode = isDemoBundleRequest(currentLocationSearch);
 
   if (isDemoMode) {
     return `/workbench-bundles/${encodeURIComponent(componentId)}.js`;
@@ -41,8 +55,12 @@ function buildDevFallbackBundlePath(componentId: string): string {
 }
 
 export function useWidgetBundle(componentId: string): BundleState {
+  const currentLocationSearch =
+    typeof window === "undefined" ? "" : window.location.search;
+  const cacheKey = buildBundleCacheKey(componentId, currentLocationSearch);
+
   const [state, setState] = useState<BundleState>(() => {
-    const cached = bundleCache.get(componentId);
+    const cached = bundleCache.get(cacheKey);
     if (cached) {
       return { loading: false, error: null, bundle: cached };
     }
@@ -52,7 +70,7 @@ export function useWidgetBundle(componentId: string): BundleState {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    const cached = bundleCache.get(componentId);
+    const cached = bundleCache.get(cacheKey);
     if (cached) {
       setState({ loading: false, error: null, bundle: cached });
       return;
@@ -68,7 +86,7 @@ export function useWidgetBundle(componentId: string): BundleState {
       try {
         const requestPath = buildBundleRequestPath(
           componentId,
-          typeof window === "undefined" ? "" : window.location.search,
+          currentLocationSearch,
         );
         let response = await fetch(requestPath, {
           signal: controller.signal,
@@ -86,7 +104,7 @@ export function useWidgetBundle(componentId: string): BundleState {
         }
 
         const bundle = await response.text();
-        bundleCache.set(componentId, bundle);
+        bundleCache.set(cacheKey, bundle);
         setState({ loading: false, error: null, bundle });
       } catch (error) {
         if (error instanceof Error && error.name === "AbortError") {
@@ -102,14 +120,19 @@ export function useWidgetBundle(componentId: string): BundleState {
     return () => {
       controller.abort();
     };
-  }, [componentId]);
+  }, [cacheKey, componentId, currentLocationSearch]);
 
   return state;
 }
 
 export function invalidateBundleCache(componentId?: string) {
   if (componentId) {
-    bundleCache.delete(componentId);
+    const encodedPrefix = `${encodeURIComponent(componentId)}::`;
+    for (const key of bundleCache.keys()) {
+      if (key.startsWith(encodedPrefix)) {
+        bundleCache.delete(key);
+      }
+    }
   } else {
     bundleCache.clear();
   }

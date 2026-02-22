@@ -159,8 +159,7 @@ async function main() {
   };
 
   // CLI --description flag takes priority, then package.json description
-  const description =
-    args.description ?? readPackageDescription(projectRoot);
+  const description = args.description ?? readPackageDescription(projectRoot);
   if (description && !config.manifest?.description) {
     config.manifest = {
       ...config.manifest,

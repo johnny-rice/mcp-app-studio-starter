@@ -63,9 +63,7 @@ const BRIDGE_SCRIPT = `
     if (!prev) return next;
     const changed = {};
     Object.keys(next).forEach(function(key) {
-      const prevVal = JSON.stringify(prev[key]);
-      const nextVal = JSON.stringify(next[key]);
-      if (prevVal !== nextVal) {
+      if (prev[key] !== next[key]) {
         changed[key] = next[key];
       }
     });
@@ -78,6 +76,52 @@ const BRIDGE_SCRIPT = `
       root.classList.add("dark");
     } else {
       root.classList.remove("dark");
+    }
+  }
+
+  function syncHostBackgroundToken() {
+    try {
+      var frame = window.frameElement;
+      if (!frame) return;
+      var hostWindow = window.parent || window;
+      var transparent = "rgba(0, 0, 0, 0)";
+      var transparentAlt = "transparent";
+      var hostBackgroundColor = "";
+
+      function pickBackgroundColor(element) {
+        if (!element) return "";
+        var color = hostWindow.getComputedStyle(element).backgroundColor;
+        if (!color) return "";
+        if (color === transparent || color === transparentAlt) return "";
+        return color;
+      }
+
+      var node = frame.parentElement;
+      while (node) {
+        hostBackgroundColor = pickBackgroundColor(node);
+        if (hostBackgroundColor) break;
+        node = node.parentElement;
+      }
+
+      var hostStyles = hostWindow.getComputedStyle(frame);
+      var hostBackground = hostStyles.getPropertyValue("--background").trim();
+
+      if (!hostBackground && frame.parentElement) {
+        hostBackground = hostWindow
+          .getComputedStyle(frame.parentElement)
+          .getPropertyValue("--background")
+          .trim();
+      }
+
+      var effectiveBackground = hostBackgroundColor || hostBackground;
+      if (!effectiveBackground) return;
+
+      frame.style.backgroundColor = hostBackgroundColor || effectiveBackground;
+      var root = document.documentElement;
+      root.style.setProperty("--workbench-background", effectiveBackground);
+      root.style.setProperty("--background", effectiveBackground);
+    } catch (_error) {
+      // If frameElement is unavailable we keep default token values.
     }
   }
 
@@ -94,6 +138,7 @@ const BRIDGE_SCRIPT = `
           if (changed.theme) {
             updateThemeClass(changed.theme);
           }
+          syncHostBackgroundToken();
           dispatchGlobalsChange(changed);
         }
         break;
@@ -192,6 +237,7 @@ const BRIDGE_SCRIPT = `
       if (changed.theme) {
         updateThemeClass(changed.theme);
       }
+      syncHostBackgroundToken();
       dispatchGlobalsChange(changed);
     }
   };
@@ -205,38 +251,56 @@ const TAILWIND_CDN_SCRIPT = `<script src="https://cdn.tailwindcss.com"></script>
     theme: {
       extend: {
         colors: {
-          border: 'hsl(var(--border))',
-          input: 'hsl(var(--input))',
-          ring: 'hsl(var(--ring))',
-          background: 'hsl(var(--background))',
-          foreground: 'hsl(var(--foreground))',
+          border:
+            'color-mix(in oklch, var(--border) calc(<alpha-value> * 100%), transparent)',
+          input:
+            'color-mix(in oklch, var(--input) calc(<alpha-value> * 100%), transparent)',
+          ring: 'color-mix(in oklch, var(--ring) calc(<alpha-value> * 100%), transparent)',
+          background:
+            'color-mix(in oklch, var(--background) calc(<alpha-value> * 100%), transparent)',
+          foreground:
+            'color-mix(in oklch, var(--foreground) calc(<alpha-value> * 100%), transparent)',
           primary: {
-            DEFAULT: 'hsl(var(--primary))',
-            foreground: 'hsl(var(--primary-foreground))',
+            DEFAULT:
+              'color-mix(in oklch, var(--primary) calc(<alpha-value> * 100%), transparent)',
+            foreground:
+              'color-mix(in oklch, var(--primary-foreground) calc(<alpha-value> * 100%), transparent)',
           },
           secondary: {
-            DEFAULT: 'hsl(var(--secondary))',
-            foreground: 'hsl(var(--secondary-foreground))',
+            DEFAULT:
+              'color-mix(in oklch, var(--secondary) calc(<alpha-value> * 100%), transparent)',
+            foreground:
+              'color-mix(in oklch, var(--secondary-foreground) calc(<alpha-value> * 100%), transparent)',
           },
           destructive: {
-            DEFAULT: 'hsl(var(--destructive))',
-            foreground: 'hsl(var(--destructive-foreground))',
+            DEFAULT:
+              'color-mix(in oklch, var(--destructive) calc(<alpha-value> * 100%), transparent)',
+            foreground:
+              'color-mix(in oklch, var(--destructive-foreground) calc(<alpha-value> * 100%), transparent)',
           },
           muted: {
-            DEFAULT: 'hsl(var(--muted))',
-            foreground: 'hsl(var(--muted-foreground))',
+            DEFAULT:
+              'color-mix(in oklch, var(--muted) calc(<alpha-value> * 100%), transparent)',
+            foreground:
+              'color-mix(in oklch, var(--muted-foreground) calc(<alpha-value> * 100%), transparent)',
           },
           accent: {
-            DEFAULT: 'hsl(var(--accent))',
-            foreground: 'hsl(var(--accent-foreground))',
+            DEFAULT:
+              'color-mix(in oklch, var(--accent) calc(<alpha-value> * 100%), transparent)',
+            foreground:
+              'color-mix(in oklch, var(--accent-foreground) calc(<alpha-value> * 100%), transparent)',
           },
           popover: {
-            DEFAULT: 'hsl(var(--popover))',
-            foreground: 'hsl(var(--popover-foreground))',
+            DEFAULT:
+              'color-mix(in oklch, var(--popover) calc(<alpha-value> * 100%), transparent)',
+            foreground:
+              'color-mix(in oklch, var(--popover-foreground) calc(<alpha-value> * 100%), transparent)',
           },
           card: {
-            DEFAULT: 'hsl(var(--card))',
-            foreground: 'hsl(var(--card-foreground))',
+            DEFAULT:
+              'color-mix(in oklch, var(--card) calc(<alpha-value> * 100%), transparent)',
+            foreground:
+              'color-mix(in oklch, var(--card-foreground) calc(<alpha-value> * 100%), transparent)',
           },
         },
         borderRadius: {
@@ -304,13 +368,34 @@ body {
   margin: 0;
   padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: var(--background);
+  background-color: transparent;
   color: var(--foreground);
 }
 
 #root {
   width: 100%;
   height: 100%;
+  background-color: transparent;
+}
+
+.leaflet-container {
+  background: var(--muted);
+}
+
+/* Keep tile-loading gaps dark to avoid flashes while tiles stream in. */
+[data-theme="dark"] .leaflet-container,
+.dark .leaflet-container {
+  background: oklch(0.145 0 0);
+}
+
+[data-theme="dark"] .leaflet-tile-pane,
+.dark .leaflet-tile-pane {
+  background: oklch(0.145 0 0);
+}
+
+[data-theme="dark"] .leaflet-tile,
+.dark .leaflet-tile {
+  background-color: oklch(0.145 0 0);
 }
 `;
 

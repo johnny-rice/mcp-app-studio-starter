@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { buildBundleRequestPath } from "./use-widget-bundle";
+import {
+  buildBundleCacheKey,
+  buildBundleRequestPath,
+} from "./use-widget-bundle";
 
 describe("buildBundleRequestPath", () => {
   it("includes component id", () => {
@@ -19,5 +22,14 @@ describe("buildBundleRequestPath", () => {
       "?component=welcome&foo=bar",
     );
     assert.equal(path, "/api/workbench/bundle?id=welcome");
+  });
+});
+
+describe("buildBundleCacheKey", () => {
+  it("separates cache keys for demo and non-demo modes", () => {
+    const demoKey = buildBundleCacheKey("poi-map", "?demo=true");
+    const devKey = buildBundleCacheKey("poi-map", "");
+
+    assert.notEqual(demoKey, devKey);
   });
 });

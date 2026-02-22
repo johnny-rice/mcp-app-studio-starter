@@ -19,4 +19,12 @@ describe("IframeComponentContent regression coverage", () => {
       /<ComponentErrorBoundary\s+toolInput=\{toolInput\}>[\s\S]*<IframeComponentRenderer\s*\/>[\s\S]*<\/ComponentErrorBoundary>/,
     );
   });
+
+  it("isolates theme only for the mounted widget, not loading/error placeholders", () => {
+    const source = fs.readFileSync(TARGET_FILE, "utf8");
+
+    assert.match(source, /if \(loading\) \{\n\s*return <LoadingState \/>\s*;\n\s*\}/);
+    assert.match(source, /if \(error\) \{\n\s*return <ErrorState error=\{error\} \/>\s*;\n\s*\}/);
+    assert.match(source, /<IsolatedThemeWrapper className="h-full w-full flex">[\s\S]*<WidgetIframeHost/);
+  });
 });

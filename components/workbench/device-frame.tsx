@@ -47,7 +47,7 @@ function DynamicIsland({ isDark }: { isDark: boolean }) {
 export function DeviceFrame({ children, className, style }: DeviceFrameProps) {
   const theme = useWorkbenchTheme();
   const deviceType = useDeviceType();
-  const isDark = theme === "dark";
+  const effectiveIsDark = theme === "dark";
 
   if (deviceType === "desktop") {
     return (
@@ -64,14 +64,14 @@ export function DeviceFrame({ children, className, style }: DeviceFrameProps) {
       className={cn(
         "relative flex flex-col overflow-hidden border shadow-xl transition-colors",
         config.borderRadius,
-        isDark
+        effectiveIsDark
           ? "border-neutral-700/50 bg-neutral-900 shadow-black/30"
           : "border-neutral-300/50 bg-white shadow-black/10",
         className,
       )}
       style={style}
     >
-      {config.showNotch && <DynamicIsland isDark={isDark} />}
+      {config.showNotch && <DynamicIsland isDark={effectiveIsDark} />}
       {children}
     </div>
   );

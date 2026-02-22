@@ -36,7 +36,7 @@ export function PreviewPanel() {
 
   return (
     <div
-      className="relative flex h-full flex-col overflow-hidden rounded-lg border border-border/50 bg-background dark:bg-neutral-900/40"
+      className="relative flex h-full flex-col overflow-hidden rounded-lg border border-border/50"
       style={
         {
           viewTransitionName: isTransitioning

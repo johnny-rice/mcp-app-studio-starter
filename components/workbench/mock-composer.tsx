@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowUp } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/ui/cn";
 import {
   useDeviceType,
@@ -18,11 +18,16 @@ interface MockComposerProps {
 export function MockComposer({ variant = "bottom" }: MockComposerProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isMultiline, setIsMultiline] = useState(false);
-  const deviceType = useDeviceType();
+  const [mounted, setMounted] = useState(false);
   const theme = useWorkbenchStore((s) => s.theme);
+  const deviceType = useDeviceType();
   const isTransitioning = useIsTransitioning();
   const isMobile = deviceType === "mobile";
-  const isDark = theme === "dark";
+  const isDark = mounted && theme === "dark";
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleInput = useCallback(() => {
     const textarea = textareaRef.current;

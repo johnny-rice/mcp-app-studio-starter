@@ -18,6 +18,7 @@ import {
   Tablet,
   X,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -338,20 +339,29 @@ function AdvancedSettingsPopover() {
 export function PreviewToolbar() {
   const displayMode = useDisplayMode();
   const theme = useWorkbenchTheme();
+  const [mounted, setMounted] = useState(false);
   const deviceType = useDeviceType();
   const conversationMode = useConversationMode();
 
-  const { setDisplayMode, setDeviceType, setTheme, setConversationMode } =
-    useWorkbenchStore(
-      useShallow((s) => ({
-        setDisplayMode: s.setDisplayMode,
-        setDeviceType: s.setDeviceType,
-        setTheme: s.setTheme,
-        setConversationMode: s.setConversationMode,
-      })),
-    );
+  const {
+    setDisplayMode,
+    setDeviceType,
+    setTheme: setWorkbenchTheme,
+    setConversationMode,
+  } = useWorkbenchStore(
+    useShallow((s) => ({
+      setDisplayMode: s.setDisplayMode,
+      setDeviceType: s.setDeviceType,
+      setTheme: s.setTheme,
+      setConversationMode: s.setConversationMode,
+    })),
+  );
 
-  const isDark = theme === "dark";
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = mounted && theme === "dark";
 
   return (
     <TooltipProvider delayDuration={500} skipDelayDuration={300}>
@@ -447,7 +457,10 @@ export function PreviewToolbar() {
                 variant="ghost"
                 size="icon"
                 className="relative size-7 text-muted-foreground hover:text-foreground"
-                onClick={() => setTheme(isDark ? "light" : "dark")}
+                onClick={() => {
+                  const nextTheme = isDark ? "light" : "dark";
+                  setWorkbenchTheme(nextTheme);
+                }}
               >
                 <Sun
                   className={cn(

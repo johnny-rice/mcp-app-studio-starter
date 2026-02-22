@@ -81,6 +81,16 @@ export function WorkbenchShell() {
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const activeElement = document.activeElement;
+      if (
+        activeElement &&
+        (activeElement.tagName === "INPUT" ||
+          activeElement.tagName === "TEXTAREA" ||
+          activeElement.getAttribute("contenteditable") === "true")
+      ) {
+        return;
+      }
+
       const isMac = /mac/i.test(navigator.userAgent);
       const modKey = isMac ? e.metaKey : e.ctrlKey;
 
@@ -112,7 +122,9 @@ export function WorkbenchShell() {
           <span className="select-none font-mono">Workbench</span>
         </div>
 
-        <span className="font-medium text-sm">{activeComponent?.label ?? "MCP App"}</span>
+        <span className="font-medium text-sm">
+          {activeComponent?.label ?? "MCP App"}
+        </span>
 
         <div className="flex items-center justify-end gap-1">
           <Button

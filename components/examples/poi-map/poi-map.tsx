@@ -72,6 +72,7 @@ export interface POIMapProps {
   previousDisplayMode?: DisplayMode;
   widgetState: POIMapViewState | null;
   theme: "light" | "dark";
+  isDesktopHost?: boolean;
   view?: View | null;
   onWidgetStateChange: (state: Partial<POIMapViewState>) => void;
   onRequestDisplayMode: (mode: DisplayMode) => void;
@@ -95,6 +96,7 @@ export function POIMap({
   previousDisplayMode = "inline",
   widgetState,
   theme,
+  isDesktopHost = false,
   view,
   onWidgetStateChange,
   onRequestDisplayMode,
@@ -164,6 +166,8 @@ export function POIMap({
   );
 
   const isFullscreen = displayMode === "fullscreen";
+  const fullscreenSurfaceClass =
+    theme === "dark" ? "bg-neutral-950" : "bg-background";
   const isModalView = view?.mode === "modal";
   const modalPoiId =
     isModalView && view?.params?.poiId ? String(view.params.poiId) : null;
@@ -315,15 +319,21 @@ export function POIMap({
     return (
       <div
         id={id}
-        className={cn("relative flex h-full w-full", className)}
+        className={cn(
+          isDesktopHost
+            ? "relative flex h-full w-full gap-2"
+            : "relative flex h-full w-full gap-2 p-2 sm:gap-3 sm:p-3",
+          fullscreenSurfaceClass,
+          className,
+        )}
         data-tool-ui-id={id}
         data-slot="poi-map"
       >
         {renderModalOverlay()}
-        <div className="flex w-72 shrink-0 flex-col rounded-xl bg-card/50 py-3 pr-1 backdrop-blur-sm">
-          <div className="mb-3 pr-2">
+        <div className="flex w-80 shrink-0 flex-col overflow-hidden rounded-xl bg-card/50 py-3 backdrop-blur-sm">
+          <div className="mb-3 px-2.5">
             <div className="flex items-center justify-between">
-              <span className="font-medium text-sm tracking-tight">
+              <span className="font-semibold text-base tracking-tight">
                 {title ?? "Locations"}
               </span>
               <DropdownMenu>
@@ -361,7 +371,7 @@ export function POIMap({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <p className="mt-0.5 text-muted-foreground text-xs">
+            <p className="mt-0.5 text-muted-foreground text-sm">
               {filteredPois.length} location{filteredPois.length !== 1 && "s"}
               {categoryFilter && ` · ${CATEGORY_LABELS[categoryFilter]}`}
             </p>
@@ -377,7 +387,13 @@ export function POIMap({
           />
         </div>
 
-        <div className="relative isolate min-w-0 flex-1 overflow-hidden rounded-2xl border border-border/50 shadow-sm">
+        <div
+          className={
+            isDesktopHost
+              ? "relative isolate min-w-0 flex-1 overflow-hidden"
+              : "relative isolate min-w-0 flex-1 overflow-hidden rounded-2xl border border-border/50 shadow-sm"
+          }
+        >
           <MapView
             pois={filteredPois}
             center={mapCenter}
@@ -397,7 +413,7 @@ export function POIMap({
                   <Button
                     variant="secondary"
                     size="icon"
-                    className="size-10 rounded-xl bg-background/90 backdrop-blur-md transition-all hover:bg-background active:scale-95"
+                    className="size-10 rounded-full bg-background/90 backdrop-blur-md transition-all hover:bg-background active:scale-95"
                     onClick={onRefresh}
                   >
                     <RefreshCw className="size-4" />
@@ -413,7 +429,7 @@ export function POIMap({
                 <Button
                   variant="secondary"
                   size="icon"
-                  className="size-10 rounded-xl bg-background/90 backdrop-blur-md transition-all hover:bg-background active:scale-95"
+                  className="size-10 rounded-full bg-background/90 backdrop-blur-md transition-all hover:bg-background active:scale-95"
                   onClick={handleToggleFullscreen}
                 >
                   <Minimize2 className="size-4" />
@@ -467,7 +483,7 @@ export function POIMap({
               <Button
                 variant="secondary"
                 size="icon"
-                className="size-10 rounded-xl bg-background/90 backdrop-blur-md transition-all hover:bg-background active:scale-95"
+                className="size-10 rounded-full bg-background/90 backdrop-blur-md transition-all hover:bg-background active:scale-95"
                 onClick={onRefresh}
               >
                 <RefreshCw className="size-4" />
@@ -483,7 +499,7 @@ export function POIMap({
             <Button
               variant="secondary"
               size="icon"
-              className="size-10 rounded-xl bg-background/90 backdrop-blur-md transition-all hover:bg-background active:scale-95"
+              className="size-10 rounded-full bg-background/90 backdrop-blur-md transition-all hover:bg-background active:scale-95"
               onClick={handleToggleFullscreen}
             >
               <Maximize2 className="size-4" />

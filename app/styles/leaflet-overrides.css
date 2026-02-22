@@ -10,6 +10,22 @@
   background: hsl(240 0 10%);
 }
 
+/* Keep tile-loading gaps dark to prevent white flashing during pan/zoom. */
+[data-theme="dark"] .leaflet-container,
+.dark .leaflet-container {
+  background: oklch(0.145 0 0);
+}
+
+[data-theme="dark"] .leaflet-tile-pane,
+.dark .leaflet-tile-pane {
+  background: oklch(0.145 0 0);
+}
+
+[data-theme="dark"] .leaflet-tile,
+.dark .leaflet-tile {
+  background-color: oklch(0.145 0 0);
+}
+
 .leaflet-control-attribution {
   background: oklch(from var(--background) l c h / 0.8) !important;
   color: var(--muted-foreground);

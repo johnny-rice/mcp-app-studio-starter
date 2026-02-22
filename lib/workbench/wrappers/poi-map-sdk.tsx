@@ -14,6 +14,7 @@ import {
   useCallTool,
   useDisplayMode,
   useFeature,
+  useHostContext,
   useOpenLink,
   useSendMessage,
   useTheme,
@@ -24,19 +25,16 @@ import {
   readOpenAIToolInputForPOIMap,
   resolveSerializablePOIMapInput,
 } from "./poi-map-input";
+import {
+  DEFAULT_WIDGET_STATE,
+  mergePOIMapWidgetState,
+} from "./poi-map-widget-state";
 
 type View = {
   mode: "modal" | "inline";
   params: Record<string, unknown> | null;
 };
-
-const DEFAULT_WIDGET_STATE: POIMapViewState = {
-  selectedPoiId: null,
-  favoriteIds: [],
-  mapCenter: DEFAULT_CENTER,
-  mapZoom: DEFAULT_ZOOM,
-  categoryFilter: null,
-};
+export { mergePOIMapWidgetState };
 
 /**
  * Workbench + export wrapper for the POI map widget.
@@ -69,18 +67,17 @@ export function POIMapSDK() {
   }, [mode]);
 
   const theme = useTheme();
+  const hostContext = useHostContext();
+  const isDesktopHost = hostContext?.platform !== "mobile";
   const openLink = useOpenLink();
   const sendMessage = useSendMessage();
   const callTool = useCallTool();
 
   const hasWidgetState = useFeature("widgetState");
   const [persistedState, setPersistedState] = useWidgetState<POIMapViewState>();
-  const [localState, setLocalState] =
-    useState<POIMapViewState>(DEFAULT_WIDGET_STATE);
+  const [localState, setLocalState] = useState<POIMapViewState | null>(null);
 
-  const baseState = hasWidgetState
-    ? (persistedState ?? DEFAULT_WIDGET_STATE)
-    : localState;
+  const baseState = hasWidgetState ? persistedState : localState;
 
   const derivedDefaults = useMemo(
     () => ({
@@ -92,10 +89,7 @@ export function POIMapSDK() {
   );
 
   const currentWidgetState = useMemo<POIMapViewState>(
-    () => ({
-      ...derivedDefaults,
-      ...baseState,
-    }),
+    () => mergePOIMapWidgetState(derivedDefaults, baseState),
     [baseState, derivedDefaults],
   );
 
@@ -189,6 +183,7 @@ export function POIMapSDK() {
       previousDisplayMode={previousDisplayModeRef.current ?? undefined}
       widgetState={currentWidgetState}
       theme={theme}
+      isDesktopHost={isDesktopHost}
       view={localView}
       onWidgetStateChange={handleWidgetStateChange}
       onRequestDisplayMode={handleRequestDisplayMode}

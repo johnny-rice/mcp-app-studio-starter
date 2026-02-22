@@ -83,6 +83,17 @@ describe("generateIframeHtml", () => {
     );
   });
 
+  it("keeps iframe html/body background transparent for rounded host clipping", () => {
+    const html = generateIframeHtml({
+      widgetBundle: "console.log('widget')",
+      initialGlobals: TEST_GLOBALS,
+      useTailwindCdn: false,
+    });
+
+    assert.equal(html.includes("background-color: transparent;"), true);
+    assert.equal(html.includes("background-color: var(--background);"), false);
+  });
+
   it("uses OKLCH token defaults compatible with demo.css", () => {
     const html = generateIframeHtml({
       widgetBundle: "console.log('widget')",
@@ -93,6 +104,96 @@ describe("generateIframeHtml", () => {
 
     assert.equal(html.includes("--background: oklch(1 0 0);"), true);
     assert.equal(html.includes("--background: 0 0% 100%;"), false);
+  });
+
+  it("maps tailwind CDN color tokens using alpha-preserving CSS variables", () => {
+    const html = generateIframeHtml({
+      widgetBundle: "console.log('widget')",
+      initialGlobals: TEST_GLOBALS,
+      useTailwindCdn: true,
+    });
+
+    assert.equal(
+      html.includes(
+        "border:\n            'color-mix(in oklch, var(--border) calc(<alpha-value> * 100%), transparent)'",
+      ),
+      true,
+    );
+    assert.equal(html.includes("border: 'hsl(var(--border))'"), false);
+  });
+
+  it("supports opacity utilities for token colors in tailwind CDN mode", () => {
+    const html = generateIframeHtml({
+      widgetBundle: "console.log('widget')",
+      initialGlobals: TEST_GLOBALS,
+      useTailwindCdn: true,
+    });
+
+    assert.equal(html.includes("calc(<alpha-value> * 100%)"), true);
+    assert.equal(html.includes("oklch(from var(--border)"), false);
+  });
+
+  it("preserves dark token base alpha before applying opacity utilities", () => {
+    const html = generateIframeHtml({
+      widgetBundle: "console.log('widget')",
+      initialGlobals: TEST_GLOBALS,
+      useTailwindCdn: true,
+    });
+
+    assert.equal(html.includes("--border: oklch(1 0 0 / 5%);"), true);
+    assert.equal(
+      html.includes(
+        "color-mix(in oklch, var(--border) calc(<alpha-value> * 100%), transparent)",
+      ),
+      true,
+    );
+  });
+
+  it("includes dark-mode leaflet tile backdrop overrides", () => {
+    const html = generateIframeHtml({
+      widgetBundle: "console.log('widget')",
+      initialGlobals: TEST_GLOBALS,
+      useTailwindCdn: true,
+    });
+
+    assert.equal(html.includes(".dark .leaflet-tile-pane"), true);
+    assert.equal(html.includes('[data-theme="dark"] .leaflet-tile'), true);
+  });
+
+  it("syncs --background from the host iframe element into srcdoc tokens", () => {
+    const html = generateIframeHtml({
+      widgetBundle: "console.log('widget')",
+      initialGlobals: TEST_GLOBALS,
+      useTailwindCdn: false,
+    });
+
+    assert.equal(html.includes('getPropertyValue("--background")'), true);
+    assert.equal(
+      html.includes(
+        'root.style.setProperty("--background", effectiveBackground)',
+      ),
+      true,
+    );
+  });
+
+  it("syncs concrete host surface color into iframe + srcdoc when available", () => {
+    const html = generateIframeHtml({
+      widgetBundle: "console.log('widget')",
+      initialGlobals: TEST_GLOBALS,
+      useTailwindCdn: false,
+    });
+
+    assert.equal(
+      html.includes("hostWindow.getComputedStyle(element).backgroundColor"),
+      true,
+    );
+    assert.equal(
+      html.includes(
+        "frame.style.backgroundColor = hostBackgroundColor || effectiveBackground",
+      ),
+      true,
+    );
+    assert.equal(html.includes("var effectiveBackground ="), true);
   });
 });
 

@@ -4,6 +4,7 @@ import { type ReactNode, useEffect, useRef } from "react";
 import { cn } from "@/lib/ui/cn";
 import {
   useConversationMode,
+  useDeviceType,
   useDisplayMode,
   useWorkbenchStore,
   useWorkbenchTheme,
@@ -107,15 +108,17 @@ interface ChatThreadProps {
 export function ChatThread({ children, className }: ChatThreadProps) {
   const displayMode = useDisplayMode();
   const theme = useWorkbenchTheme();
+  const deviceType = useDeviceType();
   const conversationMode = useConversationMode();
   const maxHeight = useWorkbenchStore((s) => s.maxHeight);
   const intrinsicHeight = useWorkbenchStore((s) => s.intrinsicHeight);
-  const isDark = theme === "dark";
+  const effectiveIsDark = theme === "dark";
   const scrollRef = useRef<HTMLDivElement>(null);
   const widgetHeight =
     intrinsicHeight !== null
       ? Math.min(Math.max(intrinsicHeight, 0), maxHeight)
       : maxHeight;
+  const isDesktopDevice = deviceType === "desktop";
 
   useEffect(() => {
     if (scrollRef.current && displayMode === "pip") {
@@ -162,9 +165,7 @@ export function ChatThread({ children, className }: ChatThreadProps) {
 
   if (displayMode === "fullscreen") {
     return (
-      <FullscreenLayout className={className} isDark={isDark}>
-        {children}
-      </FullscreenLayout>
+      <FullscreenLayout className={className}>{children}</FullscreenLayout>
     );
   }
 
@@ -172,7 +173,7 @@ export function ChatThread({ children, className }: ChatThreadProps) {
     return (
       <PipLayout
         className={className}
-        isDark={isDark}
+        isDark={effectiveIsDark}
         scrollRef={scrollRef}
         widgetHeight={widgetHeight}
       >
@@ -192,8 +193,8 @@ export function ChatThread({ children, className }: ChatThreadProps) {
   return (
     <IsolatedLayout
       className={className}
-      isDark={isDark}
       widgetHeight={widgetHeight}
+      isDesktopDevice={isDesktopDevice}
     >
       {children}
     </IsolatedLayout>
@@ -203,33 +204,39 @@ export function ChatThread({ children, className }: ChatThreadProps) {
 interface LayoutProps {
   children: ReactNode;
   className?: string;
-  isDark: boolean;
 }
 
-interface InlineLayoutProps extends LayoutProps {
+interface IsolatedLayoutProps extends LayoutProps {
   widgetHeight: number;
+  isDesktopDevice: boolean;
 }
 
 function IsolatedLayout({
   children,
   className,
-  isDark,
   widgetHeight,
-}: InlineLayoutProps) {
+  isDesktopDevice,
+}: IsolatedLayoutProps) {
   return (
     <div
       className={cn(
-        "relative flex h-full flex-col items-center justify-center overflow-hidden px-4 transition-colors",
-        isDark ? "bg-neutral-900" : "bg-white",
+        "relative flex h-full flex-col overflow-hidden transition-colors",
+        !isDesktopDevice && "items-center justify-center px-4",
         className,
       )}
     >
       <MorphContainer
         className={cn(
-          "w-full max-w-[770px] overflow-hidden rounded-2xl border shadow-sm",
-          isDark ? "border-neutral-700" : "border-neutral-200",
+          "overflow-hidden",
+          isDesktopDevice
+            ? "h-full w-full border-none shadow-none"
+            : "w-full max-w-[770px] rounded-2xl border border-border shadow-sm",
         )}
-        style={{ height: widgetHeight, maxHeight: widgetHeight }}
+        style={
+          isDesktopDevice
+            ? undefined
+            : { height: widgetHeight, maxHeight: widgetHeight }
+        }
       >
         <div className="h-full overflow-auto">{children}</div>
       </MorphContainer>
@@ -238,6 +245,7 @@ function IsolatedLayout({
 }
 
 interface PipLayoutProps extends LayoutProps {
+  isDark: boolean;
   scrollRef: React.RefObject<HTMLDivElement | null>;
   widgetHeight: number;
 }
@@ -253,7 +261,6 @@ function PipLayout({
     <div
       className={cn(
         "relative h-full overflow-hidden transition-colors",
-        isDark ? "bg-neutral-900" : "bg-white",
         className,
       )}
     >
@@ -261,9 +268,7 @@ function PipLayout({
         <MorphContainer
           className={cn(
             "pointer-events-auto w-full max-w-[770px] overflow-hidden rounded-2xl border shadow-lg transition-colors",
-            isDark
-              ? "border-neutral-700 bg-neutral-900"
-              : "border-neutral-200 bg-white",
+            "border-border bg-background",
           )}
           style={{ height: widgetHeight, maxHeight: widgetHeight }}
         >
@@ -287,12 +292,11 @@ function PipLayout({
   );
 }
 
-function FullscreenLayout({ children, className, isDark }: LayoutProps) {
+function FullscreenLayout({ children, className }: LayoutProps) {
   return (
     <div
       className={cn(
         "relative h-full overflow-hidden transition-colors",
-        isDark ? "bg-neutral-900" : "bg-white",
         className,
       )}
       style={{ overscrollBehavior: "contain" }}

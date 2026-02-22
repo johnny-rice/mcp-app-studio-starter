@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "./_adapter";
 import { POICard } from "./poi-card";
 import type { POI } from "./schema";
+import { buildPoiIdSelector } from "./selector";
 
 interface POIListInlineProps {
   pois: POI[];
@@ -60,7 +61,7 @@ export function POIListInline({
     if (lastScrolledPoiIdRef.current === selectedPoiId) return;
 
     const selectedCard = scrollRef.current.querySelector(
-      `[data-poi-id="${selectedPoiId}"]`,
+      buildPoiIdSelector(selectedPoiId),
     );
     if (selectedCard) {
       selectedCard.scrollIntoView({

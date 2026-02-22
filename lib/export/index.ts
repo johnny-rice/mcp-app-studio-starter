@@ -57,6 +57,7 @@ export async function exportWidget(
   const warnings: string[] = [];
 
   try {
+    await fs.rm(outputDir, { recursive: true, force: true }).catch(() => {});
     await fs.mkdir(outputDir, { recursive: true });
 
     console.log("📦 Bundling widget...");

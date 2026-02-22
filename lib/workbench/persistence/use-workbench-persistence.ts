@@ -90,14 +90,18 @@ export function useWorkbenchPersistence() {
   useEffect(() => {
     if (!isInitialized.current) return;
 
-    writeLocalStoragePreferences({
-      maxHeight: store.maxHeight,
-      safeAreaInsets: store.safeAreaInsets,
-      locale: store.locale,
-      collapsedSections: store.collapsedSections,
-      isLeftPanelOpen: store.isLeftPanelOpen,
-      isRightPanelOpen: store.isRightPanelOpen,
-    });
+    const timer = setTimeout(() => {
+      writeLocalStoragePreferences({
+        maxHeight: store.maxHeight,
+        safeAreaInsets: store.safeAreaInsets,
+        locale: store.locale,
+        collapsedSections: store.collapsedSections,
+        isLeftPanelOpen: store.isLeftPanelOpen,
+        isRightPanelOpen: store.isRightPanelOpen,
+      });
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, [
     store.maxHeight,
     store.safeAreaInsets,
@@ -109,11 +113,17 @@ export function useWorkbenchPersistence() {
 
   useEffect(() => {
     if (!isInitialized.current) return;
-    writeSessionStorageConsole(store.consoleLogs);
+    const timer = setTimeout(() => {
+      writeSessionStorageConsole(store.consoleLogs);
+    }, 500);
+    return () => clearTimeout(timer);
   }, [store.consoleLogs]);
 
   useEffect(() => {
     if (!isInitialized.current) return;
-    writeLocalStorageMockConfig(store.mockConfig);
+    const timer = setTimeout(() => {
+      writeLocalStorageMockConfig(store.mockConfig);
+    }, 500);
+    return () => clearTimeout(timer);
   }, [store.mockConfig]);
 }

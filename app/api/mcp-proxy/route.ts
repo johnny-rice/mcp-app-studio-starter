@@ -99,7 +99,21 @@ async function mcpRequest(
     };
   }
 
-  const data = (await response.json()) as JsonRpcResponse;
+  let data: JsonRpcResponse;
+  try {
+    data = (await response.json()) as JsonRpcResponse;
+  } catch (err) {
+    const text = await response.text().catch(() => "Unknown error");
+    return {
+      error: {
+        type: "invalid_response",
+        message: `Invalid JSON returned by server: ${err instanceof Error ? err.message : String(err)}`,
+        suggestion: "The server did not return a valid JSON-RPC payload. Check the server response formatting.",
+        details: text.slice(0, 500),
+      },
+      sessionId: newSessionId,
+    };
+  }
 
   if (data.error) {
     return {

@@ -10,7 +10,7 @@ const TARGET_FILE = path.resolve(
 
 function getBridgeEffectDeps(source: string): string[] {
   const match = source.match(
-    /useEffect\(\(\) => \{\n\s*const iframe = iframeRef\.current;[\s\S]*?new WorkbenchMessageBridge\(handlersRef\.current\)[\s\S]*?\}, \[([^\]]*)\]\);/,
+    /use(?:Layout)?Effect\(\(\) => \{\n\s*const iframe = iframeRef\.current;[\s\S]*?new WorkbenchMessageBridge\(handlersRef\.current\)[\s\S]*?\}, \[([^\]]*)\]\);/,
   );
 
   assert.ok(match, "expected to find WorkbenchMessageBridge attach effect");
@@ -18,6 +18,14 @@ function getBridgeEffectDeps(source: string): string[] {
     .split(",")
     .map((dep) => dep.trim())
     .filter(Boolean);
+}
+
+function getOpenAIBridgeEffectKind(source: string): "effect" | "layout" {
+  const match = source.match(
+    /(use(?:Layout)?Effect)\(\(\) => \{\n\s*const iframe = iframeRef\.current;[\s\S]*?new WorkbenchMessageBridge\(handlersRef\.current\)/,
+  );
+  assert.ok(match, "expected to find WorkbenchMessageBridge hook");
+  return match[1] === "useLayoutEffect" ? "layout" : "effect";
 }
 
 function getSrcDocMemoDeps(source: string): string[] {
@@ -79,6 +87,19 @@ describe("WidgetIframeHost bridge lifecycle regression", () => {
     assert.deepEqual(deps, ["demoMode", "iframeKey"]);
   });
 
+  it("attaches OPENAI bridge in layout phase before AppBridge connects", () => {
+    const source = fs.readFileSync(TARGET_FILE, "utf8");
+    const openAIBridgeIdx = source.indexOf(
+      "new WorkbenchMessageBridge(handlersRef.current)",
+    );
+    const appBridgeIdx = source.indexOf("const bridge = new AppBridge");
+
+    assert.equal(getOpenAIBridgeEffectKind(source), "layout");
+    assert.notEqual(openAIBridgeIdx, -1);
+    assert.notEqual(appBridgeIdx, -1);
+    assert.ok(openAIBridgeIdx < appBridgeIdx);
+  });
+
   it("does not auto-register simulation config for every tool call", () => {
     const source = fs.readFileSync(TARGET_FILE, "utf8");
 
@@ -95,6 +116,13 @@ describe("WidgetIframeHost bridge lifecycle regression", () => {
     assert.ok(firstMockCall < firstSimulationRead);
   });
 
+  it("routes server-sourced tools through the MCP client", () => {
+    const source = fs.readFileSync(TARGET_FILE, "utf8");
+
+    assert.match(source, /toolConfig\?\.source === "server"/);
+    assert.match(source, /callMcpTool\(/);
+  });
+
   it("cleans up uploaded file object URLs when iframe lifecycle resets", () => {
     const source = fs.readFileSync(TARGET_FILE, "utf8");
 
@@ -103,5 +131,12 @@ describe("WidgetIframeHost bridge lifecycle regression", () => {
       source,
       /useEffect\(\(\) => \{\n\s*return \(\) => \{\n\s*clearFiles\(\);\n\s*\};\n\s*\}, \[iframeKey\]\);/,
     );
+  });
+
+  it("keeps iframe surface transparent so host surface can show through", () => {
+    const source = fs.readFileSync(TARGET_FILE, "utf8");
+
+    assert.doesNotMatch(source, /const iframeBackground =/);
+    assert.match(source, /backgroundColor: "transparent"/);
   });
 });

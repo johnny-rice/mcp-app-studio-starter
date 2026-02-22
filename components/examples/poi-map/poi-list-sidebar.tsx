@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { cn } from "./_adapter";
 import { POICard } from "./poi-card";
 import type { POI } from "./schema";
+import { buildPoiIdSelector } from "./selector";
 
 interface POIListSidebarProps {
   pois: POI[];
@@ -37,7 +38,7 @@ export function POIListSidebar({
     if (lastScrolledPoiIdRef.current === selectedPoiId) return;
 
     const selectedCard = scrollRef.current.querySelector(
-      `[data-poi-id="${selectedPoiId}"]`,
+      buildPoiIdSelector(selectedPoiId),
     );
     if (selectedCard) {
       selectedCard.scrollIntoView({
@@ -61,7 +62,7 @@ export function POIListSidebar({
   return (
     <div
       ref={scrollRef}
-      className={cn("scrollbar-subtle h-full overflow-y-auto pr-1", className)}
+      className={cn("scrollbar-subtle h-full overflow-y-auto", className)}
     >
       <div className="flex flex-col gap-0.5">
         {pois.map((poi) => (

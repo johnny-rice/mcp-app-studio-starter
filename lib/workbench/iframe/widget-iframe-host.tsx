@@ -13,6 +13,7 @@ import {
 } from "react";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { clearFiles, getFileUrl, storeFile } from "../file-store";
+import { callMcpTool } from "../mcp-client";
 import { handleMockToolCall } from "../mock-responses";
 import { useWorkbenchStore } from "../store";
 import { MORPH_TIMING } from "../transition-config";
@@ -142,7 +143,9 @@ export function WidgetIframeHost({
         store.registerTool(name);
       }
 
-      const toolConfig = store.mockConfig.tools[name];
+      const toolConfig =
+        useWorkbenchStore.getState().mockConfig.tools[name] ??
+        store.mockConfig.tools[name];
       const activeVariant =
         store.mockConfig.globalEnabled && toolConfig?.activeVariantId
           ? toolConfig.variants.find((v) => v.id === toolConfig.activeVariantId)
@@ -199,12 +202,51 @@ export function WidgetIframeHost({
         return finalizeToolResult(result);
       };
 
+      const runServerCall = async (): Promise<CallToolResponse> => {
+        store.setActiveToolCall({
+          toolName: name,
+          delay: 0,
+          startTime: Date.now(),
+        });
+
+        try {
+          const response = await callMcpTool({
+            tool: name,
+            args,
+            serverUrl: useWorkbenchStore.getState().mockConfig.serverUrl,
+          });
+
+          if (!response.success) {
+            return finalizeToolResult({
+              isError: true,
+              content: response.error?.message ?? "MCP tool call failed",
+              structuredContent: response.error
+                ? { error: response.error, duration: response.duration }
+                : { duration: response.duration },
+            });
+          }
+
+          return finalizeToolResult({
+            content: response.result?.content,
+            structuredContent: response.result?.structuredContent,
+            _meta: response.result?._meta,
+            isError: response.result?.isError,
+          });
+        } finally {
+          store.setActiveToolCall(null);
+        }
+      };
+
       const hasConfiguredMockOverride =
         store.mockConfig.globalEnabled &&
         Boolean(toolConfig?.activeVariantId || toolConfig?.mockResponse);
 
       if (hasConfiguredMockOverride) {
         return runMockCall(activeVariant?.delay ?? 300);
+      }
+
+      if (toolConfig?.source === "server") {
+        return runServerCall();
       }
 
       const simConfig = store.simulation.tools[name];
@@ -544,6 +586,36 @@ export function WidgetIframeHost({
   }, [widgetBundle, cssBundle, demoMode]);
 
   useLayoutEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+
+    const bridge = new WorkbenchMessageBridge(handlersRef.current);
+    bridgeRef.current = bridge;
+    let attached = false;
+
+    function handleLoad() {
+      const currentIframe = iframeRef.current;
+      if (!currentIframe) return;
+      if (!attached) {
+        bridge.attach(currentIframe);
+        attached = true;
+      }
+      bridge.sendGlobals(globalsRef.current);
+    }
+
+    iframe.addEventListener("load", handleLoad);
+    if (iframe.contentWindow) {
+      handleLoad();
+    }
+
+    return () => {
+      iframe.removeEventListener("load", handleLoad);
+      bridge.detach();
+      bridgeRef.current = null;
+    };
+  }, [iframeKey]);
+
+  useLayoutEffect(() => {
     if (demoMode) {
       mcpInitializedRef.current = false;
       mcpBridgeRef.current = null;
@@ -666,36 +738,6 @@ export function WidgetIframeHost({
   }, [iframeKey]);
 
   useEffect(() => {
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-
-    const bridge = new WorkbenchMessageBridge(handlersRef.current);
-    bridgeRef.current = bridge;
-    let attached = false;
-
-    function handleLoad() {
-      const currentIframe = iframeRef.current;
-      if (!currentIframe) return;
-      if (!attached) {
-        bridge.attach(currentIframe);
-        attached = true;
-      }
-      bridge.sendGlobals(globalsRef.current);
-    }
-
-    iframe.addEventListener("load", handleLoad);
-    if (iframe.contentWindow) {
-      handleLoad();
-    }
-
-    return () => {
-      iframe.removeEventListener("load", handleLoad);
-      bridge.detach();
-      bridgeRef.current = null;
-    };
-  }, [iframeKey]);
-
-  useEffect(() => {
     if (bridgeRef.current) {
       bridgeRef.current.sendGlobals(globals);
     }
@@ -747,6 +789,7 @@ export function WidgetIframeHost({
         border: "none",
         width: "100%",
         height: "100%",
+        backgroundColor: "transparent",
         ...style,
       }}
       sandbox="allow-scripts allow-same-origin"

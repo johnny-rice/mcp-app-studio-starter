@@ -3,6 +3,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/ui/cn";
 import { useDisplayMode, useWorkbenchStore } from "@/lib/workbench/store";
+import type { Theme } from "@/lib/workbench/types";
 
 const LIGHT_THEME_VARS: CSSProperties = {
   "--background": "oklch(1 0 0)",
@@ -46,7 +47,8 @@ export function IsolatedThemeWrapper({
   const displayMode = useDisplayMode();
   const safeAreaInsets = useWorkbenchStore((s) => s.safeAreaInsets);
 
-  const themeVars = THEME_VARS[theme];
+  const effectiveTheme: Theme = theme;
+  const themeVars = THEME_VARS[effectiveTheme];
   const insetStyle: CSSProperties =
     displayMode === "fullscreen"
       ? {
@@ -59,9 +61,9 @@ export function IsolatedThemeWrapper({
 
   return (
     <div
-      data-theme={theme}
-      className={cn("bg-card text-foreground transition-colors", className)}
-      style={{ colorScheme: theme, ...themeVars, ...insetStyle }}
+      data-theme={effectiveTheme}
+      className={cn("text-foreground transition-colors", className)}
+      style={{ colorScheme: effectiveTheme, ...themeVars, ...insetStyle }}
     >
       {children}
     </div>

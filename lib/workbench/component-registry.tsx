@@ -44,14 +44,13 @@ const componentMap: Record<
   welcome: { component: WelcomeCardSDK, defaultProps: WELCOME_CARD_DEMO_INPUT },
 };
 
-export const workbenchComponents: WorkbenchComponentEntry[] =
-  componentConfigs
-    .filter((config) => config.id in componentMap)
-    .map((config) => ({
-      ...config,
-      ...componentMap[config.id],
-      exportConfig: config.exportConfig,
-    }));
+export const workbenchComponents: WorkbenchComponentEntry[] = componentConfigs
+  .filter((config) => config.id in componentMap)
+  .map((config) => ({
+    ...config,
+    ...componentMap[config.id],
+    exportConfig: config.exportConfig,
+  }));
 
 export function getComponent(id: string): WorkbenchComponentEntry | undefined {
   return workbenchComponents.find((c) => c.id === id);

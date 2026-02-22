@@ -193,11 +193,16 @@ function getInitialComponent(): string {
   return params.get("component") ?? DEFAULT_COMPONENT;
 }
 
+function getInitialTheme(): Theme {
+  if (typeof document === "undefined") return "light";
+  return document.documentElement.classList.contains("dark") ? "dark" : "light";
+}
+
 export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
   selectedComponent: getInitialComponent(),
   displayMode: "inline",
   previousDisplayMode: "inline",
-  theme: "light",
+  theme: getInitialTheme(),
   locale: "en-US",
   deviceType: "desktop",
   resizableWidth: 500,
@@ -252,9 +257,40 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
   setToolOutput: (output) => set(() => ({ toolOutput: output })),
   setWidgetState: (state) => set(() => ({ widgetState: state })),
   updateWidgetState: (state) =>
-    set((prev) => ({
-      widgetState: { ...(prev.widgetState ?? {}), ...state },
-    })),
+    set((prev) => {
+      // Create a deep merge helper specifically for object state
+      function isObject(item: unknown): item is Record<string, unknown> {
+        return Boolean(item && typeof item === "object" && !Array.isArray(item));
+      }
+
+      function mergeDeep(
+        target: Record<string, unknown>,
+        source: Record<string, unknown>
+      ): Record<string, unknown> {
+        const output = Object.assign({}, target);
+        if (isObject(target) && isObject(source)) {
+          Object.keys(source).forEach((key) => {
+            if (isObject(source[key])) {
+              if (!(key in target)) {
+                Object.assign(output, { [key]: source[key] });
+              } else {
+                output[key] = mergeDeep(
+                  target[key] as Record<string, unknown>,
+                  source[key] as Record<string, unknown>
+                );
+              }
+            } else {
+              Object.assign(output, { [key]: source[key] });
+            }
+          });
+        }
+        return output;
+      }
+
+      return {
+        widgetState: mergeDeep((prev.widgetState ?? {}) as Record<string, unknown>, state),
+      };
+    }),
   setMaxHeight: (height) => set(() => ({ maxHeight: height })),
   setIntrinsicHeight: (height) => set(() => ({ intrinsicHeight: height })),
   setToolResponseMetadata: (metadata) =>
