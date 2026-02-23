@@ -154,10 +154,10 @@ function ResizablePreview() {
   return (
     <div
       ref={containerRef}
-      data-theme={mounted ? previewTheme : "light"}
+      data-theme={mounted ? theme : "light"}
       className={cn(
         "scrollbar-subtle h-full w-full overflow-hidden bg-dot-grid p-4 transition-colors",
-        isDark ? "bg-neutral-950" : "bg-neutral-100"
+        isDark ? "bg-neutral-900" : "bg-neutral-100"
       )}
     >
       <div className="flex h-full w-full items-start justify-center">
@@ -202,11 +202,11 @@ function DesktopPreview() {
       data-theme={mounted ? theme : "light"}
       className={cn(
         "h-full w-full overflow-hidden transition-colors",
-        isDark ? "bg-neutral-950" : "bg-white"
+        isDark ? "bg-neutral-900" : "bg-white"
       )}
     >
       <ChatWithComposer
-        appContainerClassName={displayMode === "inline" ? "px-4 pt-0 pb-0" : undefined}
+        appContainerClassName={displayMode === "inline" ? "py-4" : undefined}
       />
     </div>
   );
@@ -248,7 +248,7 @@ function FramedPreview() {
   return (
     <div
       ref={containerRef}
-      data-theme={mounted ? previewTheme : "light"}
+      data-theme={mounted ? theme : "light"}
       className={cn(
         "h-full w-full overflow-hidden transition-colors",
         isDark ? "bg-neutral-900" : "bg-white"
@@ -258,7 +258,7 @@ function FramedPreview() {
         <div
           className={cn(
             "flex h-full w-full items-center justify-center overflow-hidden bg-dot-grid p-4 transition-colors",
-            isDark ? "bg-neutral-950" : "bg-neutral-100"
+            isDark ? "bg-neutral-900" : "bg-neutral-100"
           )}
         >
           <DeviceFrame

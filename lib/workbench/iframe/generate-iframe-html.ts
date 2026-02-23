@@ -274,6 +274,7 @@ const TAILWIND_CDN_SCRIPT = `<script src="https://cdn.tailwindcss.com"></script>
 const CSS_VARIABLES = `
 :root, [data-theme="light"] {
   --radius: 0.625rem;
+  --preview-bg: oklch(1 0 0);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -295,6 +296,7 @@ const CSS_VARIABLES = `
 }
 
 .dark, [data-theme="dark"] {
+  --preview-bg: oklch(0.205 0 0);
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -326,14 +328,14 @@ body {
   margin: 0;
   padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: var(--background) !important;
+  background-color: var(--preview-bg) !important;
   color: var(--foreground);
 }
 
 #root {
   width: 100%;
   height: 100%;
-  background-color: var(--background) !important;
+  background-color: var(--preview-bg) !important;
 }
 
 .leaflet-container {

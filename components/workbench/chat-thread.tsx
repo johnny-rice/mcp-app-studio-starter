@@ -228,7 +228,7 @@ function IsolatedLayout({
     <div
       className={cn(
         "relative flex h-full flex-col overflow-hidden transition-colors",
-        !isDesktopDevice && "items-center justify-center px-4",
+        isDesktopDevice ? "items-center" : "items-center justify-center px-4",
         className,
       )}
     >
@@ -237,7 +237,7 @@ function IsolatedLayout({
         className={cn(
           "overflow-hidden",
           isDesktopDevice
-            ? "h-full w-full border-none shadow-none bg-transparent"
+            ? "h-full w-full max-w-[770px] border-none shadow-none bg-transparent"
             : cn(
                 "w-full max-w-[770px] rounded-2xl border shadow-sm",
                 effectiveIsDark ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"
@@ -245,7 +245,7 @@ function IsolatedLayout({
         )}
         style={
           isDesktopDevice
-            ? undefined
+            ? { maxHeight: widgetHeight }
             : { height: widgetHeight, maxHeight: widgetHeight }
         }
       >

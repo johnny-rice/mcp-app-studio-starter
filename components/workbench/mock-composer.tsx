@@ -20,7 +20,6 @@ export function MockComposer({ variant = "bottom" }: MockComposerProps) {
   const [isMultiline, setIsMultiline] = useState(false);
   const [mounted, setMounted] = useState(false);
   const theme = useWorkbenchStore((s) => s.previewTheme);
-  const globalTheme = useWorkbenchStore((s) => s.theme);
   const deviceType = useDeviceType();
   const isTransitioning = useIsTransitioning();
   const isMobile = deviceType === "mobile";
@@ -44,17 +43,16 @@ export function MockComposer({ variant = "bottom" }: MockComposerProps) {
   }, []);
 
   const isOverlay = variant === "overlay";
-  const effectiveIsDark = isOverlay ? (mounted && globalTheme === "dark") : isDark;
 
   return (
     <div
-      data-theme={mounted ? (isOverlay ? globalTheme : theme) : "light"}
+      data-theme={mounted ? theme : "light"}
       className={cn(
         "z-20 flex justify-center",
         isOverlay ? "absolute inset-x-0 bottom-0 pt-8" : "w-full shrink-0",
         isMobile ? "px-3 pb-3" : "px-4 pb-4",
         isOverlay &&
-          (effectiveIsDark
+          (isDark
             ? "bg-linear-to-t from-neutral-900 via-neutral-900/90 to-transparent"
             : "bg-linear-to-t from-white via-white/90 to-transparent"),
       )}
@@ -65,12 +63,12 @@ export function MockComposer({ variant = "bottom" }: MockComposerProps) {
       <div
         className={cn(
           "relative flex w-full items-center border shadow-sm transition-colors",
-          effectiveIsDark
+          isDark
             ? "border-neutral-800 bg-neutral-900"
             : "border-neutral-200 bg-white",
           isMobile
             ? "min-h-12 rounded-2xl pr-1.5 pl-4"
-            : "min-h-14 max-w-2xl rounded-full pr-2 pl-6",
+            : "min-h-14 max-w-[770px] rounded-full pr-2 pl-6",
           isMultiline && (isMobile ? "rounded-2xl py-1.5" : "rounded-3xl py-2"),
         )}
       >
@@ -81,7 +79,7 @@ export function MockComposer({ variant = "bottom" }: MockComposerProps) {
           onInput={handleInput}
           className={cn(
             "w-full resize-none self-center bg-transparent leading-6 outline-none transition-colors",
-            effectiveIsDark
+            isDark
               ? "text-neutral-100 placeholder:text-neutral-500"
               : "text-neutral-900 placeholder:text-neutral-400",
             isMobile
@@ -93,7 +91,7 @@ export function MockComposer({ variant = "bottom" }: MockComposerProps) {
           type="button"
           className={cn(
             "flex shrink-0 items-center justify-center rounded-full transition-colors",
-            effectiveIsDark ? "bg-white" : "bg-neutral-950",
+            isDark ? "bg-white" : "bg-neutral-950",
             isMobile ? "size-8" : "size-10",
             isMultiline &&
               (isMobile
@@ -103,7 +101,7 @@ export function MockComposer({ variant = "bottom" }: MockComposerProps) {
         >
           <ArrowUp
             className={cn(
-              effectiveIsDark ? "text-neutral-900" : "text-white",
+              isDark ? "text-neutral-900" : "text-white",
               isMobile ? "size-4" : "size-5",
             )}
           />
