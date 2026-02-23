@@ -72,57 +72,17 @@ const BRIDGE_SCRIPT = `
 
   function updateThemeClass(theme) {
     var root = document.documentElement;
+    root.setAttribute("data-theme", theme);
     if (theme === "dark") {
       root.classList.add("dark");
+      root.classList.remove("light");
     } else {
       root.classList.remove("dark");
+      root.classList.add("light");
     }
-  }
-
-  function syncHostBackgroundToken() {
-    try {
-      var frame = window.frameElement;
-      if (!frame) return;
-      var hostWindow = window.parent || window;
-      var transparent = "rgba(0, 0, 0, 0)";
-      var transparentAlt = "transparent";
-      var hostBackgroundColor = "";
-
-      function pickBackgroundColor(element) {
-        if (!element) return "";
-        var color = hostWindow.getComputedStyle(element).backgroundColor;
-        if (!color) return "";
-        if (color === transparent || color === transparentAlt) return "";
-        return color;
-      }
-
-      var node = frame.parentElement;
-      while (node) {
-        hostBackgroundColor = pickBackgroundColor(node);
-        if (hostBackgroundColor) break;
-        node = node.parentElement;
-      }
-
-      var hostStyles = hostWindow.getComputedStyle(frame);
-      var hostBackground = hostStyles.getPropertyValue("--background").trim();
-
-      if (!hostBackground && frame.parentElement) {
-        hostBackground = hostWindow
-          .getComputedStyle(frame.parentElement)
-          .getPropertyValue("--background")
-          .trim();
-      }
-
-      var effectiveBackground = hostBackgroundColor || hostBackground;
-      if (!effectiveBackground) return;
-
-      frame.style.backgroundColor = hostBackgroundColor || effectiveBackground;
-      var root = document.documentElement;
-      root.style.setProperty("--workbench-background", effectiveBackground);
-      root.style.setProperty("--background", effectiveBackground);
-    } catch (_error) {
-      // If frameElement is unavailable we keep default token values.
-    }
+    
+    // Also notify React elements if needed
+    window.dispatchEvent(new Event("themechange"));
   }
 
   function handleMessage(event) {
@@ -135,10 +95,9 @@ const BRIDGE_SCRIPT = `
         globals = { ...DEFAULT_GLOBALS, ...message.globals };
         const changed = buildChangedGlobals(previousGlobals, globals);
         if (Object.keys(changed).length > 0) {
-          if (changed.theme) {
-            updateThemeClass(changed.theme);
+          if (changed.previewTheme || changed.theme) {
+            updateThemeClass(changed.previewTheme || changed.theme);
           }
-          syncHostBackgroundToken();
           dispatchGlobalsChange(changed);
         }
         break;
@@ -234,10 +193,9 @@ const BRIDGE_SCRIPT = `
     globals = { ...DEFAULT_GLOBALS, ...initialGlobals };
     const changed = buildChangedGlobals(previousGlobals, globals);
     if (Object.keys(changed).length > 0) {
-      if (changed.theme) {
-        updateThemeClass(changed.theme);
+      if (changed.previewTheme || changed.theme) {
+        updateThemeClass(changed.previewTheme || changed.theme);
       }
-      syncHostBackgroundToken();
       dispatchGlobalsChange(changed);
     }
   };
@@ -314,7 +272,7 @@ const TAILWIND_CDN_SCRIPT = `<script src="https://cdn.tailwindcss.com"></script>
 </script>`;
 
 const CSS_VARIABLES = `
-:root {
+:root, [data-theme="light"] {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -336,7 +294,7 @@ const CSS_VARIABLES = `
   --ring: oklch(0.708 0 0);
 }
 
-.dark {
+.dark, [data-theme="dark"] {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -368,14 +326,14 @@ body {
   margin: 0;
   padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: transparent;
+  background-color: var(--background) !important;
   color: var(--foreground);
 }
 
 #root {
   width: 100%;
   height: 100%;
-  background-color: transparent;
+  background-color: var(--background) !important;
 }
 
 .leaflet-container {
@@ -409,7 +367,8 @@ export function generateIframeHtml(options: IframeHtmlOptions): string {
     includeOpenAIShim = true,
   } = options;
 
-  const themeClass = initialGlobals.theme === "dark" ? "dark" : "";
+  const effectiveTheme = initialGlobals.previewTheme || initialGlobals.theme;
+  const themeClass = effectiveTheme === "dark" ? "dark" : "light";
   const initScript = includeOpenAIShim
     ? `<script>window.__initOpenAIGlobals(${JSON.stringify(initialGlobals)});</script>`
     : "";
@@ -418,7 +377,7 @@ export function generateIframeHtml(options: IframeHtmlOptions): string {
     : "";
 
   return `<!DOCTYPE html>
-<html lang="${initialGlobals.locale}" class="${themeClass}">
+<html lang="${initialGlobals.locale}" class="${themeClass}" data-theme="${effectiveTheme}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -443,7 +402,8 @@ export function generateEmptyIframeHtml(
   includeOpenAIShim = true,
   cssHref?: string,
 ): string {
-  const themeClass = initialGlobals.theme === "dark" ? "dark" : "";
+  const effectiveTheme = initialGlobals.previewTheme || initialGlobals.theme;
+  const themeClass = effectiveTheme === "dark" ? "dark" : "light";
   const initScript = includeOpenAIShim
     ? `<script>window.__initOpenAIGlobals(${JSON.stringify(initialGlobals)});</script>`
     : "";
@@ -452,7 +412,7 @@ export function generateEmptyIframeHtml(
     : "";
 
   return `<!DOCTYPE html>
-<html lang="${initialGlobals.locale}" class="${themeClass}">
+<html lang="${initialGlobals.locale}" class="${themeClass}" data-theme="${effectiveTheme}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">

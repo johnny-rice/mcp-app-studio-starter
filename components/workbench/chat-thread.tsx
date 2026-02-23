@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/ui/cn";
 import {
   useConversationMode,
@@ -107,12 +107,14 @@ interface ChatThreadProps {
 
 export function ChatThread({ children, className }: ChatThreadProps) {
   const displayMode = useDisplayMode();
-  const theme = useWorkbenchTheme();
+  const theme = useWorkbenchStore((s) => s.previewTheme);
   const deviceType = useDeviceType();
   const conversationMode = useConversationMode();
   const maxHeight = useWorkbenchStore((s) => s.maxHeight);
   const intrinsicHeight = useWorkbenchStore((s) => s.intrinsicHeight);
-  const effectiveIsDark = theme === "dark";
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  const effectiveIsDark = mounted && theme === "dark";
   const scrollRef = useRef<HTMLDivElement>(null);
   const widgetHeight =
     intrinsicHeight !== null
@@ -122,7 +124,7 @@ export function ChatThread({ children, className }: ChatThreadProps) {
 
   useEffect(() => {
     if (scrollRef.current && displayMode === "pip") {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      scrollRef.current.scrollTop = 0;
     }
   }, [displayMode]);
 
@@ -217,6 +219,11 @@ function IsolatedLayout({
   widgetHeight,
   isDesktopDevice,
 }: IsolatedLayoutProps) {
+  const theme = useWorkbenchStore((s) => s.previewTheme);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  const effectiveIsDark = mounted && theme === "dark";
+
   return (
     <div
       className={cn(
@@ -226,11 +233,15 @@ function IsolatedLayout({
       )}
     >
       <MorphContainer
+        data-theme={mounted ? theme : "light"}
         className={cn(
           "overflow-hidden",
           isDesktopDevice
-            ? "h-full w-full border-none shadow-none"
-            : "w-full max-w-[770px] rounded-2xl border border-border shadow-sm",
+            ? "h-full w-full border-none shadow-none bg-transparent"
+            : cn(
+                "w-full max-w-[770px] rounded-2xl border shadow-sm",
+                effectiveIsDark ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"
+              ),
         )}
         style={
           isDesktopDevice
@@ -257,6 +268,11 @@ function PipLayout({
   scrollRef,
   widgetHeight,
 }: PipLayoutProps) {
+  const theme = useWorkbenchStore((s) => s.previewTheme);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  const effectiveIsDark = mounted && theme === "dark";
+
   return (
     <div
       className={cn(
@@ -266,9 +282,10 @@ function PipLayout({
     >
       <div className="pointer-events-none absolute inset-x-0 top-3 z-10 flex justify-center px-3">
         <MorphContainer
+          data-theme={mounted ? theme : "light"}
           className={cn(
             "pointer-events-auto w-full max-w-[770px] overflow-hidden rounded-2xl border shadow-lg transition-colors",
-            "border-border bg-background",
+            effectiveIsDark ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white",
           )}
           style={{ height: widgetHeight, maxHeight: widgetHeight }}
         >
@@ -293,6 +310,11 @@ function PipLayout({
 }
 
 function FullscreenLayout({ children, className }: LayoutProps) {
+  const theme = useWorkbenchStore((s) => s.previewTheme);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  const effectiveIsDark = mounted && theme === "dark";
+
   return (
     <div
       className={cn(
@@ -302,7 +324,11 @@ function FullscreenLayout({ children, className }: LayoutProps) {
       style={{ overscrollBehavior: "contain" }}
     >
       <MorphContainer
-        className="h-full overflow-auto"
+        data-theme={mounted ? theme : "light"}
+        className={cn(
+          "h-full overflow-auto transition-colors",
+          effectiveIsDark ? "bg-neutral-900" : "bg-white"
+        )}
         style={{ overscrollBehavior: "contain" }}
       >
         {children}

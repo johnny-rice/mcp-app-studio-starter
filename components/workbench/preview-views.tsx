@@ -53,15 +53,29 @@ function WidgetContent() {
   return <IframeComponentContent className="h-full" />;
 }
 
-function ChatWithComposer() {
+function ChatWithComposer({ appContainerClassName }: { appContainerClassName?: string }) {
   const displayMode = useDisplayMode();
-  const composerVariant = displayMode === "fullscreen" ? "overlay" : "bottom";
+  const isFullscreen = displayMode === "fullscreen";
+  const composerVariant = isFullscreen ? "overlay" : "bottom";
 
   return (
-    <div className="relative h-full w-full">
-      <ChatThread>
-        <WidgetContent />
-      </ChatThread>
+    <div
+      className={cn(
+        "relative h-full w-full",
+        !isFullscreen && "flex flex-col"
+      )}
+    >
+      <div
+        className={cn(
+          "relative",
+          !isFullscreen ? "flex-1 overflow-hidden" : "h-full w-full",
+          appContainerClassName
+        )}
+      >
+        <ChatThread>
+          <WidgetContent />
+        </ChatThread>
+      </div>
       <MockComposer variant={composerVariant} />
     </div>
   );
@@ -71,6 +85,14 @@ function ResizablePreview() {
   const isTransitioning = useIsTransitioning();
   const resizableWidth = useResizableWidth();
   const setResizableWidth = useWorkbenchStore((s) => s.setResizableWidth);
+  const theme = useWorkbenchStore((s) => s.previewTheme);
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = mounted && theme === "dark";
   const panelGroupRef = useRef<ImperativePanelGroupHandle | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const isSyncingLayout = useRef(false);
@@ -132,7 +154,11 @@ function ResizablePreview() {
   return (
     <div
       ref={containerRef}
-      className="scrollbar-subtle h-full w-full overflow-hidden bg-dot-grid bg-neutral-100 p-4 dark:bg-neutral-950"
+      data-theme={mounted ? previewTheme : "light"}
+      className={cn(
+        "scrollbar-subtle h-full w-full overflow-hidden bg-dot-grid p-4 transition-colors",
+        isDark ? "bg-neutral-950" : "bg-neutral-100"
+      )}
     >
       <div className="flex h-full w-full items-start justify-center">
         <PanelGroup
@@ -161,9 +187,27 @@ function ResizablePreview() {
 }
 
 function DesktopPreview() {
+  const displayMode = useDisplayMode();
+  const theme = useWorkbenchStore((s) => s.previewTheme);
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = mounted && theme === "dark";
+
   return (
-    <div className="h-full w-full overflow-hidden">
-      <ChatWithComposer />
+    <div
+      data-theme={mounted ? theme : "light"}
+      className={cn(
+        "h-full w-full overflow-hidden transition-colors",
+        isDark ? "bg-neutral-950" : "bg-white"
+      )}
+    >
+      <ChatWithComposer
+        appContainerClassName={displayMode === "inline" ? "px-4 pt-0 pb-0" : undefined}
+      />
     </div>
   );
 }
@@ -173,6 +217,14 @@ function FramedPreview() {
   const devicePreset = DEVICE_PRESETS[deviceType];
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
+  const theme = useWorkbenchStore((s) => s.previewTheme);
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = mounted && theme === "dark";
 
   useEffect(() => {
     const container = containerRef.current;
@@ -194,9 +246,21 @@ function FramedPreview() {
     hasMeasured && containerWidth > deviceWidth + FRAME_VISIBILITY_THRESHOLD;
 
   return (
-    <div ref={containerRef} className="h-full w-full overflow-hidden">
+    <div
+      ref={containerRef}
+      data-theme={mounted ? previewTheme : "light"}
+      className={cn(
+        "h-full w-full overflow-hidden transition-colors",
+        isDark ? "bg-neutral-900" : "bg-white"
+      )}
+    >
       {showFrame ? (
-        <div className="flex h-full w-full items-center justify-center overflow-hidden bg-dot-grid bg-neutral-100 p-4 dark:bg-neutral-950">
+        <div
+          className={cn(
+            "flex h-full w-full items-center justify-center overflow-hidden bg-dot-grid p-4 transition-colors",
+            isDark ? "bg-neutral-950" : "bg-neutral-100"
+          )}
+        >
           <DeviceFrame
             className="max-h-full"
             style={{

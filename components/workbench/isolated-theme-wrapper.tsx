@@ -1,6 +1,7 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/ui/cn";
 import { useDisplayMode, useWorkbenchStore } from "@/lib/workbench/store";
 import type { Theme } from "@/lib/workbench/types";
@@ -43,11 +44,13 @@ export function IsolatedThemeWrapper({
   children,
   className,
 }: IsolatedThemeWrapperProps) {
-  const theme = useWorkbenchStore((s) => s.theme);
+  const previewTheme = useWorkbenchStore((s) => s.previewTheme);
   const displayMode = useDisplayMode();
   const safeAreaInsets = useWorkbenchStore((s) => s.safeAreaInsets);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
-  const effectiveTheme: Theme = theme;
+  const effectiveTheme: Theme = mounted ? previewTheme : "light";
   const themeVars = THEME_VARS[effectiveTheme];
   const insetStyle: CSSProperties =
     displayMode === "fullscreen"

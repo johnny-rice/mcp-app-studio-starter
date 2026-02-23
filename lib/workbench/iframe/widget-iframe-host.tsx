@@ -52,7 +52,7 @@ function mapDeviceTypeToMcpPlatform(
 
 function buildMcpHostContext(globals: OpenAIGlobals): Record<string, unknown> {
   return {
-    theme: globals.theme,
+    theme: globals.previewTheme || globals.theme,
     locale: globals.locale,
     displayMode: globals.displayMode,
     availableDisplayModes: ["pip", "inline", "fullscreen"],
@@ -757,6 +757,7 @@ export function WidgetIframeHost({
     bridge.setHostContext(buildMcpHostContext(globals) as any);
   }, [
     globals.theme,
+    globals.previewTheme,
     globals.locale,
     globals.displayMode,
     globals.maxHeight,

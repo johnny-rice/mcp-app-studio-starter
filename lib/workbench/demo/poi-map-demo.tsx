@@ -28,6 +28,7 @@ const DEFAULT_WIDGET_STATE: POIMapViewState = {
 
 type DemoOpenAI = {
   theme?: DemoTheme;
+  previewTheme?: DemoTheme;
   displayMode?: DisplayMode;
   requestDisplayMode?: (args: {
     mode: DisplayMode;
@@ -62,7 +63,7 @@ export function POIMapDemo() {
     () => normalizeDisplayMode(getDemoOpenAI()?.displayMode) ?? "inline",
   );
   const [theme, setTheme] = useState<DemoTheme>(
-    () => normalizeTheme(getDemoOpenAI()?.theme) ?? "light",
+    () => normalizeTheme(getDemoOpenAI()?.previewTheme || getDemoOpenAI()?.theme) ?? "light",
   );
 
   const [widgetState, setWidgetState] = useState<POIMapViewState>({
@@ -77,13 +78,14 @@ export function POIMapDemo() {
     function syncFromHost(globals?: {
       displayMode?: unknown;
       theme?: unknown;
+      previewTheme?: unknown;
     }) {
       const nextDisplayMode = normalizeDisplayMode(globals?.displayMode);
       if (nextDisplayMode) {
         setDisplayMode(nextDisplayMode);
       }
 
-      const nextTheme = normalizeTheme(globals?.theme);
+      const nextTheme = normalizeTheme(globals?.previewTheme || globals?.theme);
       if (nextTheme) {
         setTheme(nextTheme);
       }
@@ -94,15 +96,26 @@ export function POIMapDemo() {
     function handleSetGlobals(event: Event) {
       const detail = (
         event as CustomEvent<{
-          globals?: { displayMode?: unknown; theme?: unknown };
+          globals?: { displayMode?: unknown; theme?: unknown; previewTheme?: unknown };
         }>
       ).detail;
       syncFromHost(detail?.globals);
     }
 
     window.addEventListener("openai:set_globals", handleSetGlobals);
+    
+    // Also listen for theme changes from the iframe shim
+    function handleThemeChange() {
+      const currentTheme = getDemoOpenAI()?.previewTheme || getDemoOpenAI()?.theme;
+      if (currentTheme) {
+        setTheme(currentTheme);
+      }
+    }
+    window.addEventListener("themechange", handleThemeChange);
+    
     return () => {
       window.removeEventListener("openai:set_globals", handleSetGlobals);
+      window.removeEventListener("themechange", handleThemeChange);
     };
   }, []);
 

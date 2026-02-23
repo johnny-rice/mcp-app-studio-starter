@@ -50,6 +50,7 @@ interface WorkbenchState {
   displayMode: DisplayMode;
   previousDisplayMode: DisplayMode;
   theme: Theme;
+  previewTheme: Theme;
   locale: string;
   deviceType: DeviceType;
   resizableWidth: number;
@@ -80,6 +81,7 @@ interface WorkbenchState {
   setDisplayMode: (mode: DisplayMode) => void;
   setTransitioning: (transitioning: boolean) => void;
   setTheme: (theme: Theme) => void;
+  setPreviewTheme: (theme: Theme) => void;
   setLocale: (locale: string) => void;
   setDeviceType: (type: DeviceType) => void;
   setToolInput: (input: Record<string, unknown>) => void;
@@ -150,6 +152,7 @@ function buildOpenAIGlobals(
   state: Pick<
     WorkbenchState,
     | "theme"
+    | "previewTheme"
     | "locale"
     | "displayMode"
     | "previousDisplayMode"
@@ -167,7 +170,7 @@ function buildOpenAIGlobals(
   const preset = DEVICE_PRESETS[state.deviceType];
 
   return {
-    theme: state.theme,
+    theme: state.previewTheme,
     locale: state.locale,
     displayMode: state.displayMode,
     previousDisplayMode: state.previousDisplayMode,
@@ -203,6 +206,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
   displayMode: "inline",
   previousDisplayMode: "inline",
   theme: getInitialTheme(),
+  previewTheme: getInitialTheme(),
   locale: "en-US",
   deviceType: "desktop",
   resizableWidth: 500,
@@ -242,6 +246,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
       transitionFrom: transitioning ? state.displayMode : null,
     })),
   setTheme: (theme) => set(() => ({ theme })),
+  setPreviewTheme: (theme) => set(() => ({ previewTheme: theme })),
   setLocale: (locale) => set(() => ({ locale })),
   setDeviceType: (type) =>
     set((state) => {
@@ -617,7 +622,7 @@ export const useIsTransitioning = () =>
   useWorkbenchStore((s) => s.isTransitioning);
 export const useTransitionFrom = () =>
   useWorkbenchStore((s) => s.transitionFrom);
-export const useWorkbenchTheme = () => useWorkbenchStore((s) => s.theme);
+export const useWorkbenchTheme = () => useWorkbenchStore((s) => s.previewTheme);
 export const useDeviceType = () => useWorkbenchStore((s) => s.deviceType);
 export const useConsoleLogs = () => useWorkbenchStore((s) => s.consoleLogs);
 export const useClearConsole = () => useWorkbenchStore((s) => s.clearConsole);
@@ -626,24 +631,28 @@ export const useToolOutput = () => useWorkbenchStore((s) => s.toolOutput);
 export const useMockConfig = () => useWorkbenchStore((s) => s.mockConfig);
 
 export const useOpenAIGlobals = (): OpenAIGlobals => {
-  const theme = useWorkbenchStore((s) => s.theme);
-  const locale = useWorkbenchStore((s) => s.locale);
-  const displayMode = useWorkbenchStore((s) => s.displayMode);
-  const previousDisplayMode = useWorkbenchStore((s) => s.previousDisplayMode);
-  const maxHeight = useWorkbenchStore((s) => s.maxHeight);
-  const toolInput = useWorkbenchStore((s) => s.toolInput);
-  const toolOutput = useWorkbenchStore((s) => s.toolOutput);
-  const toolResponseMetadata = useWorkbenchStore((s) => s.toolResponseMetadata);
-  const widgetState = useWorkbenchStore((s) => s.widgetState);
-  const deviceType = useWorkbenchStore((s) => s.deviceType);
-  const safeAreaInsets = useWorkbenchStore((s) => s.safeAreaInsets);
-  const view = useWorkbenchStore((s) => s.view);
-  const userLocation = useWorkbenchStore((s) => s.userLocation);
+  const {
+    theme: globalTheme,
+    previewTheme,
+    locale,
+    displayMode,
+    previousDisplayMode,
+    maxHeight,
+    toolInput,
+    toolOutput,
+    toolResponseMetadata,
+    widgetState,
+    deviceType,
+    safeAreaInsets,
+    view,
+    userLocation,
+  } = useWorkbenchStore();
 
   return useMemo(
     () =>
       buildOpenAIGlobals({
-        theme,
+        theme: globalTheme,
+        previewTheme,
         locale,
         displayMode,
         previousDisplayMode,
@@ -658,7 +667,8 @@ export const useOpenAIGlobals = (): OpenAIGlobals => {
         userLocation,
       }),
     [
-      theme,
+      globalTheme,
+      previewTheme,
       locale,
       displayMode,
       previousDisplayMode,

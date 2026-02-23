@@ -45,6 +45,7 @@ export interface View {
 
 export interface OpenAIGlobals {
   theme: Theme;
+  previewTheme?: Theme;
   locale: string;
   displayMode: DisplayMode;
   previousDisplayMode: DisplayMode | null;

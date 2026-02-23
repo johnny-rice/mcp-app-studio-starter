@@ -346,13 +346,13 @@ export function PreviewToolbar() {
   const {
     setDisplayMode,
     setDeviceType,
-    setTheme: setWorkbenchTheme,
+    setPreviewTheme: setWorkbenchTheme,
     setConversationMode,
   } = useWorkbenchStore(
     useShallow((s) => ({
       setDisplayMode: s.setDisplayMode,
       setDeviceType: s.setDeviceType,
-      setTheme: s.setTheme,
+      setPreviewTheme: s.setPreviewTheme,
       setConversationMode: s.setConversationMode,
     })),
   );
