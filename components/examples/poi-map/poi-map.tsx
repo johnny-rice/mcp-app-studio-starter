@@ -166,8 +166,6 @@ export function POIMap({
   );
 
   const isFullscreen = displayMode === "fullscreen";
-  const fullscreenSurfaceClass =
-    theme === "dark" ? "bg-neutral-950" : "bg-background";
   const isModalView = view?.mode === "modal";
   const modalPoiId =
     isModalView && view?.params?.poiId ? String(view.params.poiId) : null;
@@ -323,7 +321,6 @@ export function POIMap({
           isDesktopHost
             ? "relative flex h-full w-full gap-2"
             : "relative flex h-full w-full gap-2 p-2 sm:gap-3 sm:p-3",
-          fullscreenSurfaceClass,
           className,
         )}
         data-tool-ui-id={id}

@@ -221,7 +221,6 @@ export function ChatThread({ children, className }: ChatThreadProps) {
     <div
       className={cn(
         "relative flex h-full flex-col overflow-hidden transition-colors",
-        effectiveIsDark && (conversationMode || isFullscreen) ? "bg-neutral-900" : "bg-white",
         className
       )}
     >
