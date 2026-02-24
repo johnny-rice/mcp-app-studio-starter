@@ -79,6 +79,13 @@ export function WorkbenchShell() {
     setSDKGuideOpen(!isSDKGuideOpen);
   }, [isSDKGuideOpen, setSDKGuideOpen]);
 
+  const toggleThemeRef = React.useRef(toggleTheme);
+  const toggleFullscreenRef = React.useRef(toggleFullscreen);
+  const toggleSDKGuideRef = React.useRef(toggleSDKGuide);
+  toggleThemeRef.current = toggleTheme;
+  toggleFullscreenRef.current = toggleFullscreen;
+  toggleSDKGuideRef.current = toggleSDKGuide;
+
   React.useEffect(() => {
     const isMac = /mac/i.test(navigator.userAgent);
     
@@ -97,23 +104,23 @@ export function WorkbenchShell() {
 
       if (modKey && e.shiftKey && e.key.toLowerCase() === "d") {
         e.preventDefault();
-        toggleTheme();
+        toggleThemeRef.current();
       }
 
       if (modKey && e.shiftKey && e.key.toLowerCase() === "f") {
         e.preventDefault();
-        toggleFullscreen();
+        toggleFullscreenRef.current();
       }
 
       if (modKey && e.key === "/") {
         e.preventDefault();
-        toggleSDKGuide();
+        toggleSDKGuideRef.current();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [toggleTheme, toggleFullscreen, toggleSDKGuide]);
+  }, []);
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">

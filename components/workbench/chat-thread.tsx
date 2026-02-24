@@ -12,6 +12,7 @@ import {
   useSelectedComponent,
   useWorkbenchStore,
 } from "@/lib/workbench/store";
+import { getLayoutConfig, getLayoutVariant } from "./chat-thread-layout";
 import { MorphContainer } from "./component-renderer";
 
 interface MockMessage {
@@ -37,6 +38,10 @@ const MOCK_MESSAGES_AFTER: MockMessage[] = [
     content: "You're welcome! Let me know if you need anything else or want to make changes.",
   },
 ];
+
+const WORKBENCH_COMPONENTS_BY_ID = new Map(
+  workbenchComponents.map((component) => [component.id, component] as const),
+);
 
 function MessageBubble({
   role,
@@ -74,9 +79,15 @@ function MessageList({ messages, isDark }: { messages: MockMessage[]; isDark: bo
   );
 }
 
-function AppIndicator({ appId, isDark }: { appId: string; isDark: boolean }) {
-  const component = workbenchComponents.find((c) => c.id === appId);
-  const appName = component?.label ?? appId;
+function AppIndicator({
+  appId,
+  appName,
+  isDark,
+}: {
+  appId: string;
+  appName: string;
+  isDark: boolean;
+}) {
   const iconMap: Record<string, typeof MapPin> = { "poi-map": MapPin, welcome: MessageCircle };
   const Icon = iconMap[appId] || MessageCircle;
 
@@ -163,8 +174,9 @@ export function ChatThread({ children, className }: ChatThreadProps) {
     }
   }, [displayMode]);
 
-  const component = workbenchComponents.find((c) => c.id === selectedComponent);
+  const component = WORKBENCH_COMPONENTS_BY_ID.get(selectedComponent);
   const appId = component?.id ?? "app";
+  const appName = component?.label ?? appId;
   const toolConfig = mockConfig.tools[appId];
   const activeVariant = toolConfig?.variants.find((v) => v.id === toolConfig.activeVariantId);
   const conversation: ConversationContext | undefined = activeVariant?.conversation;
@@ -172,53 +184,13 @@ export function ChatThread({ children, className }: ChatThreadProps) {
   const userMessage = conversation?.userMessage ?? getDefaultUserMessage(appId);
   const assistantResponse = conversation?.assistantResponse ?? getDefaultAssistantResponse(appId);
 
-  // Derive styles based on current mode
-  const isFullscreen = displayMode === "fullscreen";
-  const isPip = displayMode === "pip";
-  const isIsolated = !conversationMode && !isFullscreen && !isPip;
-
-  let morphWrapperClasses = "";
-  let morphContainerClasses = "";
-  let morphContainerStyle: React.CSSProperties = {};
-
-  if (isFullscreen) {
-    morphWrapperClasses = "flex-1 w-full h-full shrink-0";
-    morphContainerClasses = cn("h-full w-full overflow-auto transition-colors", effectiveIsDark ? "bg-neutral-900" : "bg-white");
-    morphContainerStyle = { overscrollBehavior: "contain" };
-  } else if (isPip) {
-    morphWrapperClasses = "sticky top-3 z-10 flex justify-center w-full px-3 pointer-events-none shrink-0";
-    morphContainerClasses = cn(
-      "pointer-events-auto w-full max-w-[770px] overflow-hidden rounded-2xl border shadow-lg transition-colors",
-      effectiveIsDark ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"
-    );
-    morphContainerStyle = { height: widgetHeight, maxHeight: widgetHeight };
-  } else if (conversationMode) {
-    morphWrapperClasses = cn(
-      "w-full z-10 flex justify-center shrink-0"
-    );
-    morphContainerClasses = cn(
-      "w-full max-w-[770px] overflow-hidden rounded-2xl border shadow-sm transition-colors",
-      effectiveIsDark ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white",
-      "border-solid border"
-    );
-    morphContainerStyle = { height: widgetHeight, maxHeight: widgetHeight };
-  } else {
-    // Isolated
-    morphWrapperClasses = cn(
-      "relative z-10 flex h-full w-full flex-col overflow-hidden transition-colors shrink-0",
-      isDesktopDevice ? "items-center justify-center" : "items-center justify-center px-4"
-    );
-    morphContainerClasses = cn(
-      "overflow-hidden transition-colors",
-      isDesktopDevice
-        ? "h-full w-full max-w-[770px] border shadow-sm rounded-2xl bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800"
-        : cn(
-            "w-full max-w-[770px] rounded-2xl border shadow-sm",
-            effectiveIsDark ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"
-          )
-    );
-    morphContainerStyle = isDesktopDevice ? { maxHeight: widgetHeight } : { height: widgetHeight, maxHeight: widgetHeight };
-  }
+  const layoutVariant = getLayoutVariant({ displayMode, conversationMode });
+  const layout = getLayoutConfig({
+    variant: layoutVariant,
+    isDesktopDevice,
+    isDark: effectiveIsDark,
+    widgetHeight,
+  });
 
   return (
     <div
@@ -229,43 +201,37 @@ export function ChatThread({ children, className }: ChatThreadProps) {
     >
       <div
         ref={scrollRef}
-        className={cn(
-          "h-full w-full relative",
-          isFullscreen || isIsolated ? "overflow-hidden" : "overflow-y-auto scrollbar-subtle"
-        )}
+        className={layout.scrollContainerClassName}
       >
-        <div
-          className={cn(
-            "mx-auto flex flex-col w-full",
-            isFullscreen ? "h-full max-w-none" : "max-w-[770px]",
-            isIsolated ? "h-full" : isFullscreen ? "" : "p-4 pb-24 gap-4",
-            isPip ? "gap-3 pt-3" : ""
-          )}
-        >
-          {conversationMode && !isPip && !isFullscreen && (
+        <div className={layout.contentStackClassName}>
+          {layout.showConversationContext && (
             <>
               <MessageBubble role="user" content={userMessage} isDark={effectiveIsDark} />
-              <AppIndicator appId={appId} isDark={effectiveIsDark} />
+              <AppIndicator
+                appId={appId}
+                appName={appName}
+                isDark={effectiveIsDark}
+              />
             </>
           )}
 
-          <div className={morphWrapperClasses}>
+          <div className={layout.morphWrapperClassName}>
             <MorphContainer
               data-theme={mounted ? theme : "light"}
-              className={morphContainerClasses}
-              style={morphContainerStyle}
+              className={layout.morphContainerClassName}
+              style={layout.morphContainerStyle}
             >
-              <div className={isFullscreen ? "h-full" : "h-full overflow-auto"}>
+              <div className={layout.contentViewportClassName}>
                 {children}
               </div>
             </MorphContainer>
           </div>
 
-          {conversationMode && !isPip && !isFullscreen && (
+          {layout.showConversationContext && (
             <MessageBubble role="assistant" content={assistantResponse} isDark={effectiveIsDark} />
           )}
 
-          {isPip && (
+          {layout.showPipMessages && (
             <div className="flex flex-col gap-3">
               <MessageList messages={MOCK_MESSAGES} isDark={effectiveIsDark} />
               <MessageList messages={MOCK_MESSAGES_AFTER} isDark={effectiveIsDark} />

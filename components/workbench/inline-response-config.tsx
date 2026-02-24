@@ -7,7 +7,7 @@ import {
   Loader2,
   RotateCcw,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { cn } from "@/lib/ui/cn";
 import { useSimulation, useWorkbenchStore } from "@/lib/workbench/store";
@@ -57,19 +57,6 @@ export function InlineResponseConfig({
   );
 
   const existingConfig = simulation.tools[toolName];
-
-  useEffect(() => {
-    if (
-      !existingConfig &&
-      lastResponseData &&
-      typeof lastResponseData === "object"
-    ) {
-      setSimToolConfig(toolName, {
-        responseMode: "success",
-        responseData: lastResponseData as Record<string, unknown>,
-      });
-    }
-  }, [toolName, existingConfig, lastResponseData, setSimToolConfig]);
 
   const config = existingConfig ?? {
     responseMode: "success" as const,

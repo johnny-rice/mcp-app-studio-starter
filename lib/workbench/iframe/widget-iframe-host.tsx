@@ -16,8 +16,7 @@ import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { clearFiles, getFileUrl, storeFile } from "../file-store";
 import { callMcpTool } from "../mcp-client";
 import { handleMockToolCall } from "../mock-responses";
-import { useWorkbenchStore } from "../store";
-import { MORPH_TIMING } from "../transition-config";
+import { useOpenAIGlobals, useWorkbenchStore } from "../store";
 import {
   type CallToolResponse,
   DEFAULT_TOOL_CONFIG,
@@ -118,14 +117,22 @@ export function WidgetIframeHost({
   const bridgeRef = useRef<WorkbenchMessageBridge | null>(null);
   const mcpBridgeRef = useRef<AppBridge | null>(null);
   const mcpInitializedRef = useRef(false);
-  const store = useWorkbenchStore();
   const reducedMotion = useReducedMotion();
   const [iframeKey, setIframeKey] = useState(0);
-
-  const globals = useMemo<OpenAIGlobals>(
-    () => store.getOpenAIGlobals(),
-    [store],
+  const globals = useOpenAIGlobals();
+  const addConsoleEntry = useWorkbenchStore((s) => s.addConsoleEntry);
+  const registerTool = useWorkbenchStore((s) => s.registerTool);
+  const setToolOutput = useWorkbenchStore((s) => s.setToolOutput);
+  const setToolResponseMetadata = useWorkbenchStore(
+    (s) => s.setToolResponseMetadata,
   );
+  const setWidgetClosed = useWorkbenchStore((s) => s.setWidgetClosed);
+  const setActiveToolCall = useWorkbenchStore((s) => s.setActiveToolCall);
+  const setWidgetState = useWorkbenchStore((s) => s.setWidgetState);
+  const setDisplayMode = useWorkbenchStore((s) => s.setDisplayMode);
+  const setTransitioning = useWorkbenchStore((s) => s.setTransitioning);
+  const setIntrinsicHeight = useWorkbenchStore((s) => s.setIntrinsicHeight);
+  const setView = useWorkbenchStore((s) => s.setView);
   const globalsRef = useRef(globals);
   globalsRef.current = globals;
 
@@ -134,21 +141,23 @@ export function WidgetIframeHost({
       name: string,
       args: Record<string, unknown>,
     ): Promise<CallToolResponse> => {
-      store.addConsoleEntry({
+      const currentState = useWorkbenchStore.getState();
+
+      addConsoleEntry({
         type: "callTool",
         method: `callTool("${name}")`,
         args,
       });
 
-      if (!store.mockConfig.tools[name]) {
-        store.registerTool(name);
+      if (!currentState.mockConfig.tools[name]) {
+        registerTool(name);
       }
 
       const toolConfig =
         useWorkbenchStore.getState().mockConfig.tools[name] ??
-        store.mockConfig.tools[name];
+        currentState.mockConfig.tools[name];
       const activeVariant =
-        store.mockConfig.globalEnabled && toolConfig?.activeVariantId
+        currentState.mockConfig.globalEnabled && toolConfig?.activeVariantId
           ? toolConfig.variants.find((v) => v.id === toolConfig.activeVariantId)
           : null;
 
@@ -158,7 +167,7 @@ export function WidgetIframeHost({
         // ChatGPT/workbench compatibility metadata (see comment above).
         const enrichedMeta = {
           ...(result._meta ?? {}),
-          "openai/widgetSessionId": store.widgetSessionId,
+          "openai/widgetSessionId": currentState.widgetSessionId,
         };
 
         const enrichedResult: CallToolResponse = {
@@ -170,24 +179,24 @@ export function WidgetIframeHost({
           ? `callTool("${name}") → [MOCK: ${result._mockVariant}]`
           : `callTool("${name}") → response`;
 
-        store.addConsoleEntry({
+        addConsoleEntry({
           type: "callTool",
           method: methodLabel,
           result: enrichedResult,
         });
 
-        store.setToolOutput(enrichedResult.structuredContent ?? null);
-        store.setToolResponseMetadata(enrichedResult._meta ?? null);
+        setToolOutput(enrichedResult.structuredContent ?? null);
+        setToolResponseMetadata(enrichedResult._meta ?? null);
 
         if (enrichedResult._meta?.["openai/closeWidget"] === true) {
-          store.setWidgetClosed(true);
+          setWidgetClosed(true);
         }
 
         return enrichedResult;
       };
 
       const runMockCall = async (delay: number): Promise<CallToolResponse> => {
-        store.setActiveToolCall({
+        setActiveToolCall({
           toolName: name,
           delay,
           startTime: Date.now(),
@@ -195,9 +204,13 @@ export function WidgetIframeHost({
 
         let result;
         try {
-          result = await handleMockToolCall(name, args, store.mockConfig);
+          result = await handleMockToolCall(
+            name,
+            args,
+            useWorkbenchStore.getState().mockConfig,
+          );
         } finally {
-          store.setActiveToolCall(null);
+          setActiveToolCall(null);
         }
 
         return finalizeToolResult(result);
@@ -206,7 +219,7 @@ export function WidgetIframeHost({
       const runServerCall = async (): Promise<CallToolResponse> => {
         const abortController = new AbortController();
 
-        store.setActiveToolCall({
+        setActiveToolCall({
           toolName: name,
           delay: 0,
           startTime: Date.now(),
@@ -242,12 +255,12 @@ export function WidgetIframeHost({
             isError: response.result?.isError,
           });
         } finally {
-          store.setActiveToolCall(null);
+          setActiveToolCall(null);
         }
       };
 
       const hasConfiguredMockOverride =
-        store.mockConfig.globalEnabled &&
+        currentState.mockConfig.globalEnabled &&
         Boolean(toolConfig?.activeVariantId || toolConfig?.mockResponse);
 
       if (hasConfiguredMockOverride) {
@@ -258,16 +271,16 @@ export function WidgetIframeHost({
         return runServerCall();
       }
 
-      const simConfig = store.simulation.tools[name];
+      const simConfig = currentState.simulation.tools[name];
       if (hasCustomSimulationConfig(simConfig)) {
-        store.setActiveToolCall({
+        setActiveToolCall({
           toolName: name,
           delay: 300,
           startTime: Date.now(),
         });
 
         if (simConfig.responseMode === "hang") {
-          store.addConsoleEntry({
+          addConsoleEntry({
             type: "callTool",
             method: `callTool("${name}") → [SIMULATED: hang]`,
             result: {
@@ -282,8 +295,8 @@ export function WidgetIframeHost({
 
             const timeoutId = setTimeout(() => {
               if (cancelled) return;
-              store.setActiveToolCall(null);
-              store.addConsoleEntry({
+              setActiveToolCall(null);
+              addConsoleEntry({
                 type: "callTool",
                 method: `callTool("${name}") → [SIMULATED: hang timeout]`,
                 result: { _note: "Hang simulation timed out after 30 seconds" },
@@ -294,7 +307,7 @@ export function WidgetIframeHost({
             const cancelFn = () => {
               cancelled = true;
               clearTimeout(timeoutId);
-              store.addConsoleEntry({
+              addConsoleEntry({
                 type: "callTool",
                 method: `callTool("${name}") → [SIMULATED: hang cancelled]`,
                 result: { _note: "Hang simulation cancelled by user" },
@@ -302,7 +315,7 @@ export function WidgetIframeHost({
               reject(new Error("Hang simulation cancelled"));
             };
 
-            store.setActiveToolCall({
+            setActiveToolCall({
               toolName: name,
               delay: HANG_TIMEOUT_MS,
               startTime: Date.now(),
@@ -313,7 +326,7 @@ export function WidgetIframeHost({
         }
 
         await new Promise((resolve) => setTimeout(resolve, 300));
-        store.setActiveToolCall(null);
+        setActiveToolCall(null);
 
         let result: CallToolResponse;
         const modeLabel = simConfig.responseMode.toUpperCase();
@@ -328,28 +341,32 @@ export function WidgetIframeHost({
               isError: true,
               content:
                 (simConfig.responseData.message as string) ?? "Simulated error",
-              _meta: { "openai/widgetSessionId": store.widgetSessionId },
+              _meta: {
+                "openai/widgetSessionId": useWorkbenchStore.getState().widgetSessionId,
+              },
             };
             break;
           default:
             result = {
               structuredContent: simConfig.responseData,
-              _meta: { "openai/widgetSessionId": store.widgetSessionId },
+              _meta: {
+                "openai/widgetSessionId": useWorkbenchStore.getState().widgetSessionId,
+              },
             };
             break;
         }
 
-        store.addConsoleEntry({
+        addConsoleEntry({
           type: "callTool",
           method: `callTool("${name}") → [SIMULATED: ${modeLabel}]`,
           result,
         });
 
-        store.setToolOutput(result.structuredContent ?? null);
-        store.setToolResponseMetadata(result._meta ?? null);
+        setToolOutput(result.structuredContent ?? null);
+        setToolResponseMetadata(result._meta ?? null);
 
         if (result._meta?.["openai/closeWidget"] === true) {
-          store.setWidgetClosed(true);
+          setWidgetClosed(true);
         }
 
         return result;
@@ -357,26 +374,34 @@ export function WidgetIframeHost({
 
       return runMockCall(activeVariant?.delay ?? 300);
     },
-    [store],
+    [
+      addConsoleEntry,
+      registerTool,
+      setToolOutput,
+      setToolResponseMetadata,
+      setWidgetClosed,
+      setActiveToolCall,
+    ],
   );
 
   const handleSetWidgetState = useCallback(
     (state: WidgetState): void => {
-      store.addConsoleEntry({
+      addConsoleEntry({
         type: "setWidgetState",
         method: "setWidgetState",
         args: state,
       });
-      store.setWidgetState(state);
+      setWidgetState(state);
     },
-    [store],
+    [addConsoleEntry, setWidgetState],
   );
 
   const handleRequestDisplayMode = useCallback(
     async (args: { mode: DisplayMode }): Promise<{ mode: DisplayMode }> => {
-      const currentMode = store.displayMode;
+      const currentState = useWorkbenchStore.getState();
+      const currentMode = currentState.displayMode;
 
-      store.addConsoleEntry({
+      addConsoleEntry({
         type: "requestDisplayMode",
         method: `requestDisplayMode("${args.mode}")`,
         args,
@@ -386,7 +411,7 @@ export function WidgetIframeHost({
         return { mode: args.mode };
       }
 
-      if (store.isTransitioning) {
+      if (currentState.isTransitioning) {
         return { mode: args.mode };
       }
 
@@ -395,12 +420,12 @@ export function WidgetIframeHost({
         typeof document === "undefined" ||
         !("startViewTransition" in document)
       ) {
-        store.setDisplayMode(args.mode);
+        setDisplayMode(args.mode);
         return { mode: args.mode };
       }
 
       flushSync(() => {
-        store.setTransitioning(true);
+        setTransitioning(true);
       });
 
       const transition = (
@@ -409,84 +434,84 @@ export function WidgetIframeHost({
         }
       ).startViewTransition(() => {
         flushSync(() => {
-          store.setDisplayMode(args.mode);
+          setDisplayMode(args.mode);
         });
       });
 
       transition.finished.finally(() => {
-        store.setTransitioning(false);
+        setTransitioning(false);
       });
 
       return { mode: args.mode };
     },
-    [store, reducedMotion],
+    [addConsoleEntry, reducedMotion, setDisplayMode, setTransitioning],
   );
 
   const handleSendFollowUpMessage = useCallback(
     async (args: { prompt: string }): Promise<void> => {
-      store.addConsoleEntry({
+      addConsoleEntry({
         type: "sendFollowUpMessage",
         method: "sendFollowUpMessage",
         args,
       });
     },
-    [store],
+    [addConsoleEntry],
   );
 
   const handleRequestClose = useCallback(() => {
-    store.addConsoleEntry({
+    addConsoleEntry({
       type: "requestClose",
       method: "requestClose",
     });
-    store.setWidgetClosed(true);
-  }, [store]);
+    setWidgetClosed(true);
+  }, [addConsoleEntry, setWidgetClosed]);
 
   const handleOpenExternal = useCallback(
     (payload: { href: string }) => {
-      store.addConsoleEntry({
+      addConsoleEntry({
         type: "openExternal",
         method: `openExternal("${payload.href}")`,
         args: payload,
       });
       window.open(payload.href, "_blank", "noopener,noreferrer");
     },
-    [store],
+    [addConsoleEntry],
   );
 
   const handleNotifyIntrinsicHeight = useCallback(
     (height: number) => {
-      store.addConsoleEntry({
+      addConsoleEntry({
         type: "notifyIntrinsicHeight",
         method: `notifyIntrinsicHeight(${height})`,
         args: { height },
       });
       const nextHeight = Number.isFinite(height) ? Math.max(0, height) : null;
-      store.setIntrinsicHeight(nextHeight);
+      setIntrinsicHeight(nextHeight);
     },
-    [store],
+    [addConsoleEntry, setIntrinsicHeight],
   );
 
   const handleRequestModal = useCallback(
     async (options: ModalOptions): Promise<void> => {
-      store.addConsoleEntry({
+      addConsoleEntry({
         type: "requestModal",
         method: `requestModal("${options.title ?? "Modal"}")`,
         args: options,
       });
 
-      store.setView({
+      setView({
         mode: "modal",
         params: options.params ?? null,
       });
     },
-    [store],
+    [addConsoleEntry, setView],
   );
 
   const handleUploadFile = useCallback(
     async (file: File) => {
       const fileId = storeFile(file);
 
-      store.addConsoleEntry({
+      addConsoleEntry({
         type: "uploadFile",
         method: `uploadFile("${file.name}")`,
         args: { name: file.name, size: file.size, type: file.type },
@@ -495,14 +520,14 @@ export function WidgetIframeHost({
 
       return { fileId };
     },
-    [store],
+    [addConsoleEntry],
   );
 
   const handleGetFileDownloadUrl = useCallback(
     async (args: { fileId: string }) => {
       const downloadUrl = getFileUrl(args.fileId);
 
-      store.addConsoleEntry({
+      addConsoleEntry({
         type: "getFileDownloadUrl",
         method: `getFileDownloadUrl("${args.fileId}")`,
         args,
@@ -515,7 +540,7 @@ export function WidgetIframeHost({
 
       return { downloadUrl };
     },
-    [store],
+    [addConsoleEntry],
   );
 
   const handleCallToolRef = useRef(handleCallTool);

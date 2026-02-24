@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_CENTER,
   DEFAULT_ZOOM,
@@ -59,12 +59,10 @@ export function POIMapSDK() {
   const previousDisplayModeRef = useRef<DisplayMode | null>(null);
   const lastModeRef = useRef(mode);
 
-  useEffect(() => {
-    if (lastModeRef.current !== mode) {
-      previousDisplayModeRef.current = lastModeRef.current as DisplayMode;
-      lastModeRef.current = mode;
-    }
-  }, [mode]);
+  if (lastModeRef.current !== mode) {
+    previousDisplayModeRef.current = lastModeRef.current as DisplayMode;
+    lastModeRef.current = mode;
+  }
 
   const theme = useTheme();
   const hostContext = useHostContext();

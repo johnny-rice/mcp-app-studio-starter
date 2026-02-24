@@ -80,7 +80,11 @@ function formatDelay(ms: number): string {
   return `${ms}ms`;
 }
 
-export function MockVariantEditor({
+export function MockVariantEditor(props: MockVariantEditorProps) {
+  return <MockVariantEditorInner key={props.variant.id} {...props} />;
+}
+
+function MockVariantEditorInner({
   variant,
   onSave,
   onCancel,
@@ -101,15 +105,6 @@ export function MockVariantEditor({
   }, []);
 
   const isDark = mounted && resolvedTheme === "dark";
-
-  useEffect(() => {
-    setName(variant.name);
-    setType(variant.type);
-    setDelay(variant.delay);
-    setResponseText(JSON.stringify(variant.response, null, 2));
-    setLastParsed(variant.response);
-    setHasError(false);
-  }, [variant.id, variant.name, variant.type, variant.delay, variant.response]);
 
   const extensions = useMemo(
     () => [

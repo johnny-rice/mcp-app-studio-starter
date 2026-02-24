@@ -631,22 +631,20 @@ export const useToolOutput = () => useWorkbenchStore((s) => s.toolOutput);
 export const useMockConfig = () => useWorkbenchStore((s) => s.mockConfig);
 
 export const useOpenAIGlobals = (): OpenAIGlobals => {
-  const {
-    theme: globalTheme,
-    previewTheme,
-    locale,
-    displayMode,
-    previousDisplayMode,
-    maxHeight,
-    toolInput,
-    toolOutput,
-    toolResponseMetadata,
-    widgetState,
-    deviceType,
-    safeAreaInsets,
-    view,
-    userLocation,
-  } = useWorkbenchStore();
+  const globalTheme = useWorkbenchStore((s) => s.theme);
+  const previewTheme = useWorkbenchStore((s) => s.previewTheme);
+  const locale = useWorkbenchStore((s) => s.locale);
+  const displayMode = useWorkbenchStore((s) => s.displayMode);
+  const previousDisplayMode = useWorkbenchStore((s) => s.previousDisplayMode);
+  const maxHeight = useWorkbenchStore((s) => s.maxHeight);
+  const toolInput = useWorkbenchStore((s) => s.toolInput);
+  const toolOutput = useWorkbenchStore((s) => s.toolOutput);
+  const toolResponseMetadata = useWorkbenchStore((s) => s.toolResponseMetadata);
+  const widgetState = useWorkbenchStore((s) => s.widgetState);
+  const deviceType = useWorkbenchStore((s) => s.deviceType);
+  const safeAreaInsets = useWorkbenchStore((s) => s.safeAreaInsets);
+  const view = useWorkbenchStore((s) => s.view);
+  const userLocation = useWorkbenchStore((s) => s.userLocation);
 
   return useMemo(
     () =>
