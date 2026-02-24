@@ -13,12 +13,12 @@ import {
   MoreHorizontal,
   MoveHorizontal,
   PictureInPicture2,
-  Zap,
   Smartphone,
   Square,
   Sun,
   Tablet,
   X,
+  Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
@@ -363,11 +363,12 @@ export function PreviewToolbar() {
   const conversationMode = useConversationMode();
   const isHmrPreviewEnabled = useIsHmrPreviewEnabled();
   const selectedComponent = useSelectedComponent();
-  const [themeDiagnostics, setThemeDiagnostics] = useState<ThemeDiagnosticsResponse>({
-    count: 0,
-    files: [],
-    tips: [],
-  });
+  const [themeDiagnostics, setThemeDiagnostics] =
+    useState<ThemeDiagnosticsResponse>({
+      count: 0,
+      files: [],
+      tips: [],
+    });
   const [diagnosticsError, setDiagnosticsError] = useState<string | null>(null);
 
   const {
@@ -558,7 +559,7 @@ export function PreviewToolbar() {
                     >
                       <AlertTriangle className="size-4" />
                       {themeDiagnostics.count > 0 && (
-                        <span className="-top-0.5 -right-0.5 absolute min-w-4 rounded-full bg-amber-500 px-1 text-[10px] leading-4 text-black">
+                        <span className="absolute -top-0.5 -right-0.5 min-w-4 rounded-full bg-amber-500 px-1 text-[10px] text-black leading-4">
                           {themeDiagnostics.count > 9
                             ? "9+"
                             : String(themeDiagnostics.count)}
@@ -567,7 +568,9 @@ export function PreviewToolbar() {
                     </Button>
                   </PopoverTrigger>
                 </TooltipPrimitive.Trigger>
-                <TooltipContent side="top">Theme diagnostics (non-blocking)</TooltipContent>
+                <TooltipContent side="top">
+                  Theme diagnostics (non-blocking)
+                </TooltipContent>
               </TooltipPrimitive.Root>
               <PopoverContent align="end" className="w-96 space-y-3">
                 <div className="font-medium text-sm">Theme Diagnostics</div>
@@ -583,13 +586,19 @@ export function PreviewToolbar() {
                   <>
                     <div className="max-h-64 space-y-2 overflow-auto pr-1">
                       {themeDiagnostics.files.map((file) => (
-                        <div key={file.filePath} className="rounded-md border p-2">
+                        <div
+                          key={file.filePath}
+                          className="rounded-md border p-2"
+                        >
                           <div className="truncate font-mono text-[11px] text-muted-foreground">
                             {file.filePath}
                           </div>
                           <div className="mt-1 space-y-1">
                             {file.diagnostics.slice(0, 3).map((diag, index) => (
-                              <div key={`${diag.line}-${index}`} className="text-xs">
+                              <div
+                                key={`${diag.line}-${index}`}
+                                className="text-xs"
+                              >
                                 <div className="text-foreground">
                                   L{diag.line}: {diag.message}
                                 </div>
@@ -604,7 +613,10 @@ export function PreviewToolbar() {
                     </div>
                     <div className="space-y-1 border-t pt-2">
                       {themeDiagnostics.tips.map((tip) => (
-                        <div key={tip} className="text-muted-foreground text-xs">
+                        <div
+                          key={tip}
+                          className="text-muted-foreground text-xs"
+                        >
                           - {tip}
                         </div>
                       ))}

@@ -173,7 +173,7 @@ export function POIMap({
         style={themeBoundary.style}
       >
         {modalOverlay}
-        <div className="flex w-80 shrink-0 flex-col overflow-hidden bg-muted/50 rounded-xl p-2">
+        <div className="flex w-80 shrink-0 flex-col overflow-hidden rounded-xl bg-muted/50 p-2">
           <div className="mb-3 px-2.5">
             <div className="flex items-center justify-between">
               <span className="font-semibold text-base tracking-tight">
@@ -185,7 +185,9 @@ export function POIMap({
                 onFilterCategory={handleFilterCategory}
               />
             </div>
-            <p className="mt-0.5 text-muted-foreground text-sm">{locationSummary}</p>
+            <p className="mt-0.5 text-muted-foreground text-sm">
+              {locationSummary}
+            </p>
           </div>
           <POIListSidebar
             pois={filteredPois}
@@ -199,11 +201,10 @@ export function POIMap({
         </div>
 
         <div
-          className={
-             cn(
-              "relative isolate min-w-0 flex-1 overflow-hidden rounded-2xl",
-              {"border border-border shadow-sm": !isDesktopHost}
-            )}
+          className={cn(
+            "relative isolate min-w-0 flex-1 overflow-hidden rounded-2xl",
+            { "border border-border shadow-sm": !isDesktopHost },
+          )}
         >
           {mapView}
           <MapControls

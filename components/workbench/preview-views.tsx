@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useHydratedOnce } from "@/hooks/use-hydrated-once";
 import {
   type ImperativePanelGroupHandle,
   Panel,
   PanelGroup,
   PanelResizeHandle,
 } from "react-resizable-panels";
+import { useHydratedOnce } from "@/hooks/use-hydrated-once";
 import { cn } from "@/lib/ui/cn";
 import {
   useDeviceType,
@@ -54,23 +54,24 @@ function WidgetContent() {
   return <IframeComponentContent className="h-full" />;
 }
 
-function ChatWithComposer({ appContainerClassName }: { appContainerClassName?: string }) {
+function ChatWithComposer({
+  appContainerClassName,
+}: {
+  appContainerClassName?: string;
+}) {
   const displayMode = useDisplayMode();
   const isFullscreen = displayMode === "fullscreen";
   const composerVariant = isFullscreen ? "overlay" : "bottom";
 
   return (
     <div
-      className={cn(
-        "relative h-full w-full",
-        !isFullscreen && "flex flex-col"
-      )}
+      className={cn("relative h-full w-full", !isFullscreen && "flex flex-col")}
     >
       <div
         className={cn(
           "relative",
           !isFullscreen ? "flex-1 overflow-hidden" : "h-full w-full",
-          appContainerClassName
+          appContainerClassName,
         )}
       >
         <ChatThread>
@@ -153,7 +154,11 @@ function ResizablePreview() {
       data-theme={theme}
       className={cn(
         "scrollbar-subtle h-full w-full overflow-hidden bg-dot-grid p-4 transition-colors",
-        !hydrated ? "bg-background" : isDark ? "bg-neutral-900" : "bg-neutral-100",
+        !hydrated
+          ? "bg-background"
+          : isDark
+            ? "bg-neutral-900"
+            : "bg-neutral-100",
       )}
     >
       <div className="flex h-full w-full items-start justify-center">
@@ -244,7 +249,11 @@ function FramedPreview() {
         <div
           className={cn(
             "flex h-full w-full items-center justify-center overflow-hidden bg-dot-grid p-4 transition-colors",
-            !hydrated ? "bg-background" : isDark ? "bg-neutral-900" : "bg-neutral-100",
+            !hydrated
+              ? "bg-background"
+              : isDark
+                ? "bg-neutral-900"
+                : "bg-neutral-100",
           )}
         >
           <DeviceFrame

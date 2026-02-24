@@ -237,7 +237,7 @@ export function WidgetIframeHost({
               args,
               serverUrl: useWorkbenchStore.getState().mockConfig.serverUrl,
             },
-            { signal: abortController.signal }
+            { signal: abortController.signal },
           );
 
           if (!response.success) {
@@ -344,7 +344,8 @@ export function WidgetIframeHost({
               content:
                 (simConfig.responseData.message as string) ?? "Simulated error",
               _meta: {
-                "openai/widgetSessionId": useWorkbenchStore.getState().widgetSessionId,
+                "openai/widgetSessionId":
+                  useWorkbenchStore.getState().widgetSessionId,
               },
             };
             break;
@@ -352,7 +353,8 @@ export function WidgetIframeHost({
             result = {
               structuredContent: simConfig.responseData,
               _meta: {
-                "openai/widgetSessionId": useWorkbenchStore.getState().widgetSessionId,
+                "openai/widgetSessionId":
+                  useWorkbenchStore.getState().widgetSessionId,
               },
             };
             break;
@@ -432,7 +434,9 @@ export function WidgetIframeHost({
 
       const transition = (
         document as Document & {
-          startViewTransition: (callback: () => void) => { finished: Promise<void> };
+          startViewTransition: (callback: () => void) => {
+            finished: Promise<void>;
+          };
         }
       ).startViewTransition(() => {
         flushSync(() => {
@@ -794,11 +798,13 @@ export function WidgetIframeHost({
   }, [toolInputStr]);
 
   const toolOutputStr = JSON.stringify(globals.toolOutput ?? null);
-  const toolResponseMetadataStr = JSON.stringify(globals.toolResponseMetadata ?? null);
+  const toolResponseMetadataStr = JSON.stringify(
+    globals.toolResponseMetadata ?? null,
+  );
   useEffect(() => {
     const bridge = mcpBridgeRef.current;
     if (!bridge || !mcpInitializedRef.current) return;
-    
+
     const parsedOutput = JSON.parse(toolOutputStr);
     if (!parsedOutput) return;
 

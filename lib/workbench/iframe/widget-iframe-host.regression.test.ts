@@ -137,7 +137,10 @@ describe("WidgetIframeHost bridge lifecycle regression", () => {
     const source = fs.readFileSync(TARGET_FILE, "utf8");
 
     assert.match(source, /const iframeShellBackground =/);
-    assert.match(source, /effectiveTheme === "dark" \? "rgb\(23 23 23\)" : "transparent"/);
+    assert.match(
+      source,
+      /effectiveTheme === "dark" \? "rgb\(23 23 23\)" : "transparent"/,
+    );
     assert.match(source, /backgroundColor: iframeShellBackground/);
   });
 

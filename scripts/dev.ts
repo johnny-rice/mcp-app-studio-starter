@@ -107,9 +107,12 @@ const DEFAULT_WORKBENCH_VITE_PORT =
 
 async function main() {
   const NEXT_PORT = await findAvailablePort(DEFAULT_NEXT_PORT);
-  const WORKBENCH_VITE_PORT = await findAvailablePort(DEFAULT_WORKBENCH_VITE_PORT, {
-    exclude: new Set([NEXT_PORT]),
-  });
+  const WORKBENCH_VITE_PORT = await findAvailablePort(
+    DEFAULT_WORKBENCH_VITE_PORT,
+    {
+      exclude: new Set([NEXT_PORT]),
+    },
+  );
 
   const MCP_PORT = hasServer
     ? await findAvailablePort(DEFAULT_MCP_PORT, {

@@ -3,16 +3,17 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import "@/app/globals.css";
+import { ProductionProvider } from "@/lib/export/production-provider";
 import { componentConfigs } from "@/lib/workbench/component-configs";
 import { installOpenAIShim } from "@/lib/workbench/iframe/openai-shim-runtime";
-import { ProductionProvider } from "@/lib/export/production-provider";
 
 type WidgetModule = Record<string, unknown>;
 type WidgetComponent = React.ComponentType;
 
-const moduleLoaders = import.meta.glob<WidgetModule>(
-  ["/lib/workbench/wrappers/**/*.{ts,tsx}", "/lib/workbench/demo/**/*.{ts,tsx}"],
-);
+const moduleLoaders = import.meta.glob<WidgetModule>([
+  "/lib/workbench/wrappers/**/*.{ts,tsx}",
+  "/lib/workbench/demo/**/*.{ts,tsx}",
+]);
 
 function getComponentConfig(
   componentId: string,
@@ -97,7 +98,10 @@ async function main() {
   const params = new URLSearchParams(window.location.search);
   const componentId = params.get("component") ?? "welcome";
   const demoMode = params.get("demo") === "true";
-  const { Widget, useProvider } = await loadWidgetComponent(componentId, demoMode);
+  const { Widget, useProvider } = await loadWidgetComponent(
+    componentId,
+    demoMode,
+  );
 
   const rootElement = document.getElementById("root");
   if (!rootElement) return;

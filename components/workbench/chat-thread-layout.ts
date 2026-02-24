@@ -32,8 +32,8 @@ export function getLayoutVariant({
 
 export function getLayoutConfig({
   variant,
-  isDesktopDevice,
-  isDark,
+  isDesktopDevice: _isDesktopDevice,
+  isDark: _isDark,
   widgetHeight,
 }: {
   variant: LayoutVariant;
@@ -94,17 +94,16 @@ export function getLayoutConfig({
         morphContainerStyle: { height: widgetHeight, maxHeight: widgetHeight },
         contentViewportClassName: "h-full overflow-auto",
       };
-    case "isolated":
     default:
       return {
         variant: "isolated",
         showConversationContext: false,
         showPipMessages: false,
         scrollContainerClassName: "h-full w-full relative overflow-hidden",
-        contentStackClassName: "mx-auto flex flex-col w-full h-full max-w-[770px]",
+        contentStackClassName:
+          "mx-auto flex flex-col w-full h-full max-w-[770px]",
         morphWrapperClassName: cn(
-          "relative z-10 px-4 flex h-full w-full flex-col overflow-hidden transition-colors items-center justify-center",
-
+          "relative z-10 flex h-full w-full flex-col items-center justify-center overflow-hidden px-4 transition-colors",
         ),
         morphContainerClassName: cn(
           "w-full max-w-[770px] overflow-hidden rounded-2xl border shadow-sm transition-colors",

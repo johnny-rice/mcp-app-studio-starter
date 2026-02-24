@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { analyzeThemeDiagnostics, scanThemeDiagnosticsForComponent } from "./diagnostics";
+import {
+  analyzeThemeDiagnostics,
+  scanThemeDiagnosticsForComponent,
+} from "./diagnostics";
 
 describe("theme diagnostics", () => {
   it("flags common hardcoded color risks", () => {
@@ -30,9 +33,16 @@ describe("theme diagnostics", () => {
   });
 
   it("does not include files from other components", async () => {
-    const results = await scanThemeDiagnosticsForComponent("poi-map", process.cwd());
+    const results = await scanThemeDiagnosticsForComponent(
+      "poi-map",
+      process.cwd(),
+    );
     const filePaths = results.map((r) => r.filePath);
     const hasWelcome = filePaths.some((f) => f.includes("welcome"));
-    assert.equal(hasWelcome, false, `poi-map scan should not include welcome files, got: ${filePaths.filter((f) => f.includes("welcome")).join(", ")}`);
+    assert.equal(
+      hasWelcome,
+      false,
+      `poi-map scan should not include welcome files, got: ${filePaths.filter((f) => f.includes("welcome")).join(", ")}`,
+    );
   });
 });

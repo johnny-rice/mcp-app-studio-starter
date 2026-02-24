@@ -88,7 +88,7 @@ export function WorkbenchShell() {
 
   React.useEffect(() => {
     const isMac = /mac/i.test(navigator.userAgent);
-    
+
     const handleKeyDown = (e: KeyboardEvent) => {
       const activeElement = document.activeElement;
       if (

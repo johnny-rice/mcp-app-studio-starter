@@ -92,7 +92,11 @@ export function MockComposer({ variant = "bottom" }: MockComposerProps) {
           type="button"
           className={cn(
             "flex shrink-0 items-center justify-center rounded-full transition-colors",
-            !hydrated ? "bg-foreground" : isDark ? "bg-white" : "bg-neutral-950",
+            !hydrated
+              ? "bg-foreground"
+              : isDark
+                ? "bg-white"
+                : "bg-neutral-950",
             isMobile ? "size-8" : "size-10",
             isMultiline &&
               (isMobile

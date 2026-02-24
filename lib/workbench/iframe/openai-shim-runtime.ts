@@ -1,8 +1,4 @@
-import type {
-  OpenAIAPI,
-  OpenAIGlobals,
-  ParentToIframeMessage,
-} from "../types";
+import type { OpenAIAPI, OpenAIGlobals, ParentToIframeMessage } from "../types";
 
 type OpenAIShimWindow = Window & {
   openai?: OpenAIGlobals & OpenAIAPI;
@@ -157,7 +153,8 @@ export function installOpenAIShim(targetWindow: OpenAIShimWindow = window) {
     requestModal: async (options) =>
       callMethod("requestModal", [options]) as Promise<void>,
     uploadFile: async (file) => callMethod("uploadFile", [file]),
-    getFileDownloadUrl: async (args) => callMethod("getFileDownloadUrl", [args]),
+    getFileDownloadUrl: async (args) =>
+      callMethod("getFileDownloadUrl", [args]),
   };
 
   Object.defineProperty(targetWindow, "openai", {

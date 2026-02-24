@@ -63,7 +63,9 @@ export function POIMapDemo() {
     () => normalizeDisplayMode(getDemoOpenAI()?.displayMode) ?? "inline",
   );
   const [theme, setTheme] = useState<DemoTheme>(
-    () => normalizeTheme(getDemoOpenAI()?.previewTheme || getDemoOpenAI()?.theme) ?? "light",
+    () =>
+      normalizeTheme(getDemoOpenAI()?.previewTheme || getDemoOpenAI()?.theme) ??
+      "light",
   );
 
   const [widgetState, setWidgetState] = useState<POIMapViewState>({
@@ -96,23 +98,28 @@ export function POIMapDemo() {
     function handleSetGlobals(event: Event) {
       const detail = (
         event as CustomEvent<{
-          globals?: { displayMode?: unknown; theme?: unknown; previewTheme?: unknown };
+          globals?: {
+            displayMode?: unknown;
+            theme?: unknown;
+            previewTheme?: unknown;
+          };
         }>
       ).detail;
       syncFromHost(detail?.globals);
     }
 
     window.addEventListener("openai:set_globals", handleSetGlobals);
-    
+
     // Also listen for theme changes from the iframe shim
     function handleThemeChange() {
-      const currentTheme = getDemoOpenAI()?.previewTheme || getDemoOpenAI()?.theme;
+      const currentTheme =
+        getDemoOpenAI()?.previewTheme || getDemoOpenAI()?.theme;
       if (currentTheme) {
         setTheme(currentTheme);
       }
     }
     window.addEventListener("themechange", handleThemeChange);
-    
+
     return () => {
       window.removeEventListener("openai:set_globals", handleSetGlobals);
       window.removeEventListener("themechange", handleThemeChange);

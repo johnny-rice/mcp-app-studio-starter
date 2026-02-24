@@ -31,11 +31,9 @@ export function WelcomeCard({
       <div className="max-w-md text-center">
         <div className="mb-4 text-4xl">👋</div>
 
-        <h1 className="mb-3 font-semibold text-2xl text-foreground">
-          {title}
-        </h1>
+        <h1 className="mb-3 font-semibold text-2xl text-foreground">{title}</h1>
 
-        <p className="mb-6 text-base leading-relaxed text-muted-foreground">
+        <p className="mb-6 text-base text-muted-foreground leading-relaxed">
           {message}
         </p>
 

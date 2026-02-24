@@ -30,20 +30,24 @@ const RULES: Array<{
     ruleId: "hardcoded-hex",
     regex: /#(?:fff(?:fff)?|000(?:000)?)\b/gi,
     message: "Hardcoded absolute color found.",
-    suggestion: "Use semantic tokens like var(--foreground) or var(--background).",
+    suggestion:
+      "Use semantic tokens like var(--foreground) or var(--background).",
   },
   {
     ruleId: "hardcoded-css-color-name",
     regex:
       /(color|background(?:-color)?|border(?:-color)?)\s*:\s*(?:["'`])?(white|black)(?:["'`])?/gi,
     message: "Hardcoded color keyword found in style/CSS.",
-    suggestion: "Use semantic tokens so light/dark themes both render correctly.",
+    suggestion:
+      "Use semantic tokens so light/dark themes both render correctly.",
   },
   {
     ruleId: "hardcoded-utility-color",
-    regex: /\b(?:bg-white|text-black|border-white|bg-black|text-white|border-black)\b/g,
+    regex:
+      /\b(?:bg-white|text-black|border-white|bg-black|text-white|border-black)\b/g,
     message: "Theme-locked utility class detected.",
-    suggestion: "Replace with semantic classes such as bg-background/text-foreground/border-border.",
+    suggestion:
+      "Replace with semantic classes such as bg-background/text-foreground/border-border.",
   },
 ];
 
@@ -60,8 +64,8 @@ export function analyzeThemeDiagnostics(source: string): ThemeDiagnostic[] {
 
   for (const rule of RULES) {
     rule.regex.lastIndex = 0;
-    let match: RegExpExecArray | null;
-    while ((match = rule.regex.exec(source)) !== null) {
+    let match = rule.regex.exec(source);
+    while (match !== null) {
       diagnostics.push({
         ruleId: rule.ruleId,
         message: rule.message,
@@ -69,6 +73,7 @@ export function analyzeThemeDiagnostics(source: string): ThemeDiagnostic[] {
         match: match[0],
         line: getLineForOffset(source, match.index),
       });
+      match = rule.regex.exec(source);
     }
   }
 
@@ -115,13 +120,17 @@ function getComponentScanRoots(
   const addRoot = (relative: string) => roots.add(toPosixPath(relative));
 
   addRoot(config.exportConfig.entryPoint);
-  for (const maybeDir of deriveExampleDirsFromEntry(config.exportConfig.entryPoint)) {
+  for (const maybeDir of deriveExampleDirsFromEntry(
+    config.exportConfig.entryPoint,
+  )) {
     addRoot(maybeDir);
   }
 
   if (config.demoConfig) {
     addRoot(config.demoConfig.entryPoint);
-    for (const maybeDir of deriveExampleDirsFromEntry(config.demoConfig.entryPoint)) {
+    for (const maybeDir of deriveExampleDirsFromEntry(
+      config.demoConfig.entryPoint,
+    )) {
       addRoot(maybeDir);
     }
   }

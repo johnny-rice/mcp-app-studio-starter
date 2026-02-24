@@ -7,9 +7,7 @@ import {
   useSelectedComponent,
   useWorkbenchStore,
 } from "@/lib/workbench/store";
-import {
-  VIEW_TRANSITION_PARENT_NAME,
-} from "@/lib/workbench/transition-config";
+import { VIEW_TRANSITION_PARENT_NAME } from "@/lib/workbench/transition-config";
 import { ModalOverlay } from "./modal-overlay";
 import { PreviewToolbar } from "./preview-toolbar";
 import { PreviewContent } from "./preview-views";

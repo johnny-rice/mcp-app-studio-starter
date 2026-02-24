@@ -1,8 +1,8 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
-import { cn } from "@/lib/ui/cn";
 import { useHydratedOnce } from "@/hooks/use-hydrated-once";
+import { cn } from "@/lib/ui/cn";
 import { useDisplayMode, useWorkbenchStore } from "@/lib/workbench/store";
 import { getThemeBoundaryAttrs } from "@/lib/workbench/theme/theme-boundary";
 
