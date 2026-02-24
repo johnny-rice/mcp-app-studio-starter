@@ -131,18 +131,14 @@ export function POIMapSDK() {
 
   const [localView, setLocalView] = useState<View | null>(null);
   const handleViewDetails = useCallback((poiId: string) => {
-    void openModal(
-      {
-        title: "POI Details",
-        params: { poiId },
-      },
-      () => {
-        setLocalView({
-          mode: "modal",
-          params: { poiId },
-        });
-      },
-    );
+    setLocalView({
+      mode: "modal",
+      params: { poiId },
+    });
+    void openModal({
+      title: "POI Details",
+      params: { poiId },
+    });
   }, []);
 
   const handleDismissModal = useCallback(() => {

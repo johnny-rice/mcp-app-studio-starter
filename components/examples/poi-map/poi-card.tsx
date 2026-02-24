@@ -67,8 +67,8 @@ export const POICard = memo(function POICard({
       <button
         onClick={() => onSelect(poi.id)}
         className={cn(
-          "group relative flex h-[88px] w-44 shrink-0 snap-start flex-col rounded-xl border p-3 text-left transition-transform duration-150",
-          "bg-card hover:bg-card/90 active:scale-[0.97]",
+          "group relative flex h-[88px] w-44 shrink-0 snap-start flex-col rounded-xl border p-3 text-left",
+          "bg-card hover:bg-muted active:scale-[0.97]",
           isSelected
             ? "border-primary shadow-md ring-2 ring-primary/20"
             : "border-border/60 shadow-sm hover:border-border",
@@ -106,7 +106,7 @@ export const POICard = memo(function POICard({
       role="button"
       tabIndex={0}
       className={cn(
-        "group relative flex gap-3 rounded-xl p-2.5 transition-colors duration-150",
+        "group relative flex gap-3 rounded-xl p-2.5",
         "hover:bg-accent/50 active:bg-accent/70",
         isSelected && "bg-accent",
       )}
@@ -149,7 +149,7 @@ export const POICard = memo(function POICard({
                 >
                   <Heart
                     className={cn(
-                      "size-4 transition-all duration-200",
+                      "size-4",
                       isFavorite
                         ? "scale-110 fill-rose-500 text-rose-500"
                         : "text-muted-foreground hover:text-rose-500",
@@ -157,7 +157,7 @@ export const POICard = memo(function POICard({
                   />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="left" className="z-1001">
+              <TooltipContent side="top" className="z-1001">
                 {isFavorite ? "Remove from favorites" : "Add to favorites"}
               </TooltipContent>
             </Tooltip>
@@ -198,7 +198,7 @@ export const POICard = memo(function POICard({
               variant="secondary"
               size="sm"
               // biome-ignore lint/nursery/useSortedClasses: Class token order is asserted in regression tests.
-              className="mt-1.5 h-8 self-start rounded-lg bg-muted/60 px-2.5 text-xs text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95"
+              className="mt-1.5 h-8 self-start rounded-lg bg-muted/60 px-2.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
               onClick={(e) => {
                 e.stopPropagation();
                 onViewDetails(poi.id);

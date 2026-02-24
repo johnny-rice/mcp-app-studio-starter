@@ -25,7 +25,6 @@ export function WelcomeCardSDK() {
 
   const theme = useTheme();
   const [displayMode, setDisplayMode] = useDisplayMode();
-  const isDark = theme === "dark";
 
   const title = input.title ?? "Welcome!";
   const message =
@@ -51,9 +50,7 @@ export function WelcomeCardSDK() {
           onClick={handleToggleFullscreen}
           className={cn(
             "rounded-lg px-4 py-2 font-medium text-sm transition-colors",
-            isDark
-              ? "bg-white text-zinc-900 hover:bg-zinc-200"
-              : "bg-zinc-900 text-white hover:bg-zinc-700",
+            "bg-primary text-primary-foreground hover:opacity-90",
           )}
         >
           {actionLabel}

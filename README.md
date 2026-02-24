@@ -92,7 +92,11 @@ export function MyWidget() {
   };
 
   return (
-    <div className={theme === "dark" ? "dark" : ""}>
+    <div
+      data-theme={theme}
+      className={theme === "dark" ? "dark bg-background text-foreground" : "bg-background text-foreground"}
+      style={{ colorScheme: theme }}
+    >
       <p>Query: {input.query}</p>
       <button onClick={handleSearch}>Search</button>
 
@@ -280,11 +284,15 @@ cp server/.env.example server/.env
 
 ### Dark Mode
 
-Exported widgets inherit the host's theme. Ensure your CSS responds to `.dark`:
+Exported widgets inherit host theme and token variables. Follow the framework-agnostic contract in `lib/workbench/THEMING_CONTRACT.md`.
+
+At minimum, support `data-theme` / `.dark` and semantic tokens:
 
 ```css
-.dark .my-element {
-  background: #1a1a1a;
+.my-element {
+  background: var(--background);
+  color: var(--foreground);
+  border-color: var(--border);
 }
 ```
 

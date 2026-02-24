@@ -77,6 +77,7 @@ interface WorkbenchState {
   isSDKGuideOpen: boolean;
   simulation: SimulationState;
   conversationMode: boolean;
+  useHmrPreview: boolean;
 
   setDisplayMode: (mode: DisplayMode) => void;
   setTransitioning: (transitioning: boolean) => void;
@@ -146,6 +147,7 @@ interface WorkbenchState {
   setToolDescriptorMeta: (toolName: string, meta: ToolDescriptorMeta) => void;
   setToolSchemas: (toolName: string, schemas: ToolSchemas) => void;
   setConversationMode: (enabled: boolean) => void;
+  setUseHmrPreview: (enabled: boolean) => void;
 }
 
 function buildOpenAIGlobals(
@@ -232,6 +234,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
   isSDKGuideOpen: false,
   simulation: DEFAULT_SIMULATION_STATE,
   conversationMode: false,
+  useHmrPreview: true,
   setDisplayMode: (mode) =>
     set((state) => {
       if (mode === "fullscreen" && state.displayMode !== "fullscreen") {
@@ -354,6 +357,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
   setSDKGuideOpen: (open) => set(() => ({ isSDKGuideOpen: open })),
   setResizableWidth: (width) => set(() => ({ resizableWidth: width })),
   setConversationMode: (enabled) => set(() => ({ conversationMode: enabled })),
+  setUseHmrPreview: (enabled) => set(() => ({ useHmrPreview: enabled })),
   selectSimTool: (toolName) =>
     set((state) => ({
       simulation: { ...state.simulation, selectedTool: toolName },
@@ -701,3 +705,4 @@ export const useServerUrl = () =>
   useWorkbenchStore((s) => s.mockConfig.serverUrl);
 export const useConversationMode = () =>
   useWorkbenchStore((s) => s.conversationMode);
+export const useHmrPreview = () => useWorkbenchStore((s) => s.useHmrPreview);

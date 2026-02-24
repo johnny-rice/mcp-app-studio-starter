@@ -4,6 +4,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/ui/cn";
 import { useHydratedOnce } from "@/hooks/use-hydrated-once";
 import { useDisplayMode, useWorkbenchStore } from "@/lib/workbench/store";
+import { getThemeBoundaryAttrs } from "@/lib/workbench/theme/theme-boundary";
 
 const LIGHT_THEME_VARS: CSSProperties = {
   "--background": "oklch(1 0 0)",
@@ -48,6 +49,9 @@ export function IsolatedThemeWrapper({
   const displayMode = useDisplayMode();
   const safeAreaInsets = useWorkbenchStore((s) => s.safeAreaInsets);
   const themeVars = hydrated ? THEME_VARS[previewTheme] : {};
+  const themeBoundary = hydrated
+    ? getThemeBoundaryAttrs(previewTheme)
+    : ({ className: "light", style: {}, "data-theme": "light" } as const);
   const insetStyle: CSSProperties =
     displayMode === "fullscreen"
       ? {
@@ -60,10 +64,14 @@ export function IsolatedThemeWrapper({
 
   return (
     <div
-      data-theme={hydrated ? previewTheme : undefined}
-      className={cn("text-foreground transition-colors", className)}
+      data-theme={hydrated ? themeBoundary["data-theme"] : undefined}
+      className={cn(
+        hydrated ? themeBoundary.className : undefined,
+        "text-foreground transition-colors",
+        className,
+      )}
       style={{
-        ...(hydrated ? { colorScheme: previewTheme } : {}),
+        ...themeBoundary.style,
         ...themeVars,
         ...insetStyle,
       }}

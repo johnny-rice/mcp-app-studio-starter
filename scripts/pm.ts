@@ -55,3 +55,22 @@ export function installArgs(
 ): { command: string; args: string[] } {
   return { command: pm, args: ["install", ...extraArgs] };
 }
+
+export function execBinArgs(
+  pm: PackageManager,
+  bin: string,
+  args: string[] = [],
+): { command: string; args: string[] } {
+  switch (pm) {
+    case "pnpm":
+      return { command: "pnpm", args: ["exec", bin, ...args] };
+    case "npm":
+      return { command: "npm", args: ["exec", "--", bin, ...args] };
+    case "yarn":
+      return { command: "yarn", args: [bin, ...args] };
+    case "bun":
+      return { command: "bunx", args: [bin, ...args] };
+    default:
+      return { command: "npx", args: [bin, ...args] };
+  }
+}

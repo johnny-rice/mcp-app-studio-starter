@@ -65,7 +65,8 @@ export function ModalOverlay({
       style={{ zIndex: 1100 }}
     >
       <div
-        className="fade-in absolute inset-0 animate-in bg-black/50 backdrop-blur-[2px] duration-200"
+        className="fade-in absolute inset-0 animate-in backdrop-blur-[2px] duration-200"
+        style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
         onClick={onDismissModal}
         aria-hidden="true"
       />
@@ -93,7 +94,7 @@ export function ModalOverlay({
         )}
 
         <div className="scrollbar-subtle flex flex-col gap-3.5 overflow-y-auto p-5">
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start justify-between gap-3 pr-8">
             <div className="min-w-0 flex-1">
               <h2 className="font-medium text-lg leading-snug tracking-tight">
                 {poi.name}

@@ -46,10 +46,13 @@ function generateCallId(): string {
 function updateThemeClass(theme: "light" | "dark"): void {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
+  root.setAttribute("data-theme", theme);
   if (theme === "dark") {
     root.classList.add("dark");
+    root.classList.remove("light");
   } else {
     root.classList.remove("dark");
+    root.classList.add("light");
   }
 }
 
@@ -99,8 +102,10 @@ function createOpenAIBridge(): WindowOpenAI {
         globals = { ...DEFAULT_GLOBALS, ...message.globals };
         const changed = buildChangedGlobals(previousGlobals, globals);
         if (Object.keys(changed).length > 0) {
-          if (changed.theme) {
-            updateThemeClass(changed.theme);
+          if (changed.previewTheme || changed.theme) {
+            updateThemeClass(
+              (changed.previewTheme || changed.theme) as "light" | "dark",
+            );
           }
           dispatchGlobalsChange(changed);
         }

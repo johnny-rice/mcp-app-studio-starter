@@ -37,6 +37,7 @@ import {
 
 export interface WidgetIframeHostProps {
   widgetBundle: string | null;
+  hmrSrc?: string | null;
   cssBundle?: string;
   className?: string;
   style?: CSSProperties;
@@ -108,6 +109,7 @@ function hasCustomSimulationConfig(config?: ToolSimulationConfig): boolean {
 
 export function WidgetIframeHost({
   widgetBundle,
+  hmrSrc,
   cssBundle,
   className,
   style,
@@ -588,6 +590,8 @@ export function WidgetIframeHost({
   handlersRef.current = handlers;
 
   const srcdoc = useMemo(() => {
+    if (hmrSrc) return null;
+
     // Keep srcDoc stable while globals evolve; the bridge pushes all runtime
     // updates via OPENAI_SET_GLOBALS without reloading the iframe.
     const initialGlobals = globalsRef.current;
@@ -608,7 +612,7 @@ export function WidgetIframeHost({
       useTailwindCdn: !demoMode,
       includeOpenAIShim: true,
     });
-  }, [widgetBundle, cssBundle, demoMode]);
+  }, [widgetBundle, cssBundle, demoMode, hmrSrc]);
 
   useLayoutEffect(() => {
     const iframe = iframeRef.current;
@@ -808,19 +812,24 @@ export function WidgetIframeHost({
 
   useEffect(() => {
     setIframeKey((k) => k + 1);
-  }, [widgetBundle, cssBundle]);
+  }, [widgetBundle, cssBundle, hmrSrc]);
+
+  const effectiveTheme = globals.previewTheme || globals.theme;
+  const iframeShellBackground =
+    effectiveTheme === "dark" ? "rgb(23 23 23)" : "transparent";
 
   return (
     <iframe
       key={iframeKey}
       ref={iframeRef}
-      srcDoc={srcdoc}
+      src={hmrSrc ?? undefined}
+      srcDoc={srcdoc ?? undefined}
       className={className}
       style={{
         border: "none",
         width: "100%",
         height: "100%",
-        backgroundColor: "transparent",
+        backgroundColor: iframeShellBackground,
         ...style,
       }}
       sandbox="allow-scripts allow-same-origin"

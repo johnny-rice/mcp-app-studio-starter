@@ -48,7 +48,9 @@ const LeafletMap = dynamic(() => import("./leaflet-map"), {
 
 export function MapView({ className, ...props }: MapViewProps) {
   return (
-    <div className={cn("relative h-full w-full overflow-clip", className)}>
+    <div
+      className={cn("relative h-full w-full overflow-clip bg-background", className)}
+    >
       <LeafletMap {...props} />
     </div>
   );

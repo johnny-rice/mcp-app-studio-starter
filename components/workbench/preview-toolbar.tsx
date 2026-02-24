@@ -2,6 +2,7 @@
 
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import {
+  AlertTriangle,
   Layers,
   type LucideIcon,
   MapPin,
@@ -12,6 +13,7 @@ import {
   MoreHorizontal,
   MoveHorizontal,
   PictureInPicture2,
+  Zap,
   Smartphone,
   Square,
   Sun,
@@ -46,6 +48,8 @@ import {
   useConversationMode,
   useDeviceType,
   useDisplayMode,
+  useHmrPreview as useIsHmrPreviewEnabled,
+  useSelectedComponent,
   useWorkbenchStore,
   useWorkbenchTheme,
 } from "@/lib/workbench/store";
@@ -142,6 +146,21 @@ const LOCATION_PRESETS: ReadonlyArray<{
     },
   },
 ];
+
+interface ThemeDiagnosticsItem {
+  filePath: string;
+  diagnostics: Array<{
+    line: number;
+    message: string;
+    suggestion: string;
+  }>;
+}
+
+interface ThemeDiagnosticsResponse {
+  count: number;
+  files: ThemeDiagnosticsItem[];
+  tips: string[];
+}
 
 function clamp(value: number, min: number, max: number): number {
   if (!Number.isFinite(value)) return min;
@@ -342,18 +361,28 @@ export function PreviewToolbar() {
   const [mounted, setMounted] = useState(false);
   const deviceType = useDeviceType();
   const conversationMode = useConversationMode();
+  const isHmrPreviewEnabled = useIsHmrPreviewEnabled();
+  const selectedComponent = useSelectedComponent();
+  const [themeDiagnostics, setThemeDiagnostics] = useState<ThemeDiagnosticsResponse>({
+    count: 0,
+    files: [],
+    tips: [],
+  });
+  const [diagnosticsError, setDiagnosticsError] = useState<string | null>(null);
 
   const {
     setDisplayMode,
     setDeviceType,
     setPreviewTheme: setWorkbenchTheme,
     setConversationMode,
+    setUseHmrPreview,
   } = useWorkbenchStore(
     useShallow((s) => ({
       setDisplayMode: s.setDisplayMode,
       setDeviceType: s.setDeviceType,
       setPreviewTheme: s.setPreviewTheme,
       setConversationMode: s.setConversationMode,
+      setUseHmrPreview: s.setUseHmrPreview,
     })),
   );
 
@@ -361,11 +390,44 @@ export function PreviewToolbar() {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
+
+    const controller = new AbortController();
+    setDiagnosticsError(null);
+
+    async function loadDiagnostics() {
+      try {
+        const response = await fetch(
+          `/api/workbench/theme-diagnostics?id=${encodeURIComponent(selectedComponent)}`,
+          {
+            cache: "no-store",
+            signal: controller.signal,
+          },
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const next = (await response.json()) as ThemeDiagnosticsResponse;
+        setThemeDiagnostics(next);
+      } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") return;
+        setDiagnosticsError(
+          error instanceof Error ? error.message : "Failed to load diagnostics",
+        );
+      }
+    }
+
+    void loadDiagnostics();
+    return () => controller.abort();
+  }, [selectedComponent]);
+
   const isDark = mounted && theme === "dark";
 
   return (
     <TooltipProvider delayDuration={500} skipDelayDuration={300}>
-      <div className="flex h-9 shrink-0 items-center justify-between gap-2 border-border/50 border-b bg-neutral-100 px-4 dark:bg-neutral-900">
+      <div className="flex h-9 shrink-0 items-center justify-between gap-2 border-b bg-neutral-100 px-4 dark:bg-neutral-900">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
             <span className="cursor-default select-none text-muted-foreground/60 text-xs">
@@ -478,6 +540,103 @@ export function PreviewToolbar() {
             </TooltipPrimitive.Trigger>
             <TooltipContent side="top">Toggle theme</TooltipContent>
           </TooltipPrimitive.Root>
+
+          {process.env.NODE_ENV === "development" && (
+            <Popover>
+              <TooltipPrimitive.Root>
+                <TooltipPrimitive.Trigger asChild>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn(
+                        "relative size-7",
+                        themeDiagnostics.count > 0
+                          ? "text-amber-500 hover:text-amber-400"
+                          : "text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      <AlertTriangle className="size-4" />
+                      {themeDiagnostics.count > 0 && (
+                        <span className="-top-0.5 -right-0.5 absolute min-w-4 rounded-full bg-amber-500 px-1 text-[10px] leading-4 text-black">
+                          {themeDiagnostics.count > 9
+                            ? "9+"
+                            : String(themeDiagnostics.count)}
+                        </span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                </TooltipPrimitive.Trigger>
+                <TooltipContent side="top">Theme diagnostics (non-blocking)</TooltipContent>
+              </TooltipPrimitive.Root>
+              <PopoverContent align="end" className="w-96 space-y-3">
+                <div className="font-medium text-sm">Theme Diagnostics</div>
+                {diagnosticsError ? (
+                  <div className="text-destructive text-xs">
+                    Failed to load diagnostics: {diagnosticsError}
+                  </div>
+                ) : themeDiagnostics.count === 0 ? (
+                  <div className="text-muted-foreground text-xs">
+                    No obvious theme risks detected for this component.
+                  </div>
+                ) : (
+                  <>
+                    <div className="max-h-64 space-y-2 overflow-auto pr-1">
+                      {themeDiagnostics.files.map((file) => (
+                        <div key={file.filePath} className="rounded-md border p-2">
+                          <div className="truncate font-mono text-[11px] text-muted-foreground">
+                            {file.filePath}
+                          </div>
+                          <div className="mt-1 space-y-1">
+                            {file.diagnostics.slice(0, 3).map((diag, index) => (
+                              <div key={`${diag.line}-${index}`} className="text-xs">
+                                <div className="text-foreground">
+                                  L{diag.line}: {diag.message}
+                                </div>
+                                <div className="text-muted-foreground">
+                                  {diag.suggestion}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="space-y-1 border-t pt-2">
+                      {themeDiagnostics.tips.map((tip) => (
+                        <div key={tip} className="text-muted-foreground text-xs">
+                          - {tip}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </PopoverContent>
+            </Popover>
+          )}
+
+          {process.env.NODE_ENV === "development" && (
+            <TooltipPrimitive.Root>
+              <TooltipPrimitive.Trigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn(
+                    "size-7",
+                    isHmrPreviewEnabled
+                      ? "bg-primary/10 text-primary hover:bg-primary/20"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                  onClick={() => setUseHmrPreview(!isHmrPreviewEnabled)}
+                >
+                  <Zap className="size-4" />
+                </Button>
+              </TooltipPrimitive.Trigger>
+              <TooltipContent side="top">
+                {isHmrPreviewEnabled ? "HMR Preview On" : "HMR Preview Off"}
+              </TooltipContent>
+            </TooltipPrimitive.Root>
+          )}
 
           <AdvancedSettingsPopover />
         </div>

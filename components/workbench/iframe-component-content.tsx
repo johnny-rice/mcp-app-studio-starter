@@ -1,10 +1,18 @@
 "use client";
 
-import { useDemoMode } from "@/hooks/use-demo-mode";
 import { useEffect, useRef, useState } from "react";
+import { useDemoMode } from "@/hooks/use-demo-mode";
 import { cn } from "@/lib/ui/cn";
-import { useWidgetBundle, WidgetIframeHost } from "@/lib/workbench/iframe";
-import { useSelectedComponent, useToolInput } from "@/lib/workbench/store";
+import {
+  buildHmrPreviewPath,
+  useWidgetBundle,
+  WidgetIframeHost,
+} from "@/lib/workbench/iframe";
+import {
+  useHmrPreview,
+  useSelectedComponent,
+  useToolInput,
+} from "@/lib/workbench/store";
 import { ComponentErrorBoundary } from "./component-error-boundary";
 import { IsolatedThemeWrapper } from "./isolated-theme-wrapper";
 
@@ -19,7 +27,7 @@ function LoadingState({ visible }: { visible: boolean }) {
         visible ? "opacity-100 duration-300" : "opacity-0 duration-200",
       )}
     >
-      <div className="text-center pointer-events-none">
+      <div className="pointer-events-none text-center">
         <div className="text-muted-foreground text-sm">Preparing widget...</div>
       </div>
     </div>
@@ -42,11 +50,64 @@ function ErrorState({ error }: { error: string }) {
 function IframeComponentRenderer() {
   const selectedComponent = useSelectedComponent();
   const isDemoMode = useDemoMode();
-  const { loading, error, bundle } = useWidgetBundle(selectedComponent);
+  const useHmr = useHmrPreview();
+  const hmrEligible =
+    process.env.NODE_ENV === "development" && !isDemoMode && useHmr;
+  const { loading, error, bundle } = useWidgetBundle(selectedComponent, {
+    enabled: !hmrEligible,
+  });
+  const [hmrError, setHmrError] = useState<string | null>(null);
   const [showLoading, setShowLoading] = useState(false);
   const [loadingVisible, setLoadingVisible] = useState(false);
   const appearTimerRef = useRef<number | null>(null);
   const hideTimerRef = useRef<number | null>(null);
+  const currentLocationSearch =
+    typeof window === "undefined" ? "" : window.location.search;
+  const hmrSrc = hmrEligible
+    ? buildHmrPreviewPath(selectedComponent, currentLocationSearch)
+    : null;
+
+  useEffect(() => {
+    if (!hmrEligible) {
+      setHmrError(null);
+      return;
+    }
+
+    let cancelled = false;
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => {
+      controller.abort();
+    }, 2500);
+
+    async function checkRuntime() {
+      try {
+        const response = await fetch("/__workbench_hmr/@vite/client", {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          throw new Error(`runtime returned HTTP ${response.status}`);
+        }
+        if (!cancelled) setHmrError(null);
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        if (!cancelled) {
+          setHmrError(
+            `Workbench HMR runtime unavailable (${message}). Restart dev via \`pnpm dev\` or disable HMR in the toolbar.`,
+          );
+        }
+      } finally {
+        window.clearTimeout(timeoutId);
+      }
+    }
+
+    void checkRuntime();
+    return () => {
+      cancelled = true;
+      controller.abort();
+      window.clearTimeout(timeoutId);
+    };
+  }, [hmrEligible]);
 
   useEffect(() => {
     if (appearTimerRef.current !== null) {
@@ -58,7 +119,7 @@ function IframeComponentRenderer() {
       hideTimerRef.current = null;
     }
 
-    if (loading) {
+    if (!hmrEligible && loading) {
       setShowLoading(true);
       setLoadingVisible(false);
       appearTimerRef.current = window.setTimeout(() => {
@@ -71,7 +132,7 @@ function IframeComponentRenderer() {
     hideTimerRef.current = window.setTimeout(() => {
       setShowLoading(false);
     }, LOADING_FADE_DURATION_MS);
-  }, [loading]);
+  }, [loading, hmrEligible]);
 
   useEffect(
     () => () => {
@@ -87,24 +148,33 @@ function IframeComponentRenderer() {
 
   if (showLoading) {
     return (
-      <IsolatedThemeWrapper className="h-full w-full flex">
+      <IsolatedThemeWrapper className="flex h-full w-full">
         <LoadingState visible={loadingVisible} />
       </IsolatedThemeWrapper>
     );
   }
 
-  if (error) {
+  if (hmrEligible && hmrError) {
     return (
-      <IsolatedThemeWrapper className="h-full w-full flex">
+      <IsolatedThemeWrapper className="flex h-full w-full">
+        <ErrorState error={hmrError} />
+      </IsolatedThemeWrapper>
+    );
+  }
+
+  if (!hmrEligible && error) {
+    return (
+      <IsolatedThemeWrapper className="flex h-full w-full">
         <ErrorState error={error} />
       </IsolatedThemeWrapper>
     );
   }
 
   return (
-    <IsolatedThemeWrapper className="h-full w-full flex">
+    <IsolatedThemeWrapper className="flex h-full w-full">
       <WidgetIframeHost
         widgetBundle={bundle}
+        hmrSrc={hmrSrc}
         className="h-full w-full"
         demoMode={isDemoMode}
       />

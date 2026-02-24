@@ -34,7 +34,7 @@ export function PreviewPanel() {
   }, [setView]);
 
   return (
-    <div className="relative flex h-full flex-col overflow-hidden rounded-lg border border-border/50">
+    <div className="relative flex h-full flex-col overflow-hidden rounded-lg border">
       <PreviewToolbar />
       <div
         className="relative min-h-0 flex-1"

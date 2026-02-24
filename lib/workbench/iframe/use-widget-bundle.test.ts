@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   buildBundleCacheKey,
   buildBundleRequestPath,
+  buildHmrPreviewPath,
 } from "./use-widget-bundle";
 
 describe("buildBundleRequestPath", () => {
@@ -31,5 +32,15 @@ describe("buildBundleCacheKey", () => {
     const devKey = buildBundleCacheKey("poi-map", "");
 
     assert.notEqual(demoKey, devKey);
+  });
+});
+
+describe("buildHmrPreviewPath", () => {
+  it("builds preview URL for selected component", () => {
+    const path = buildHmrPreviewPath("poi-map", "");
+    assert.equal(
+      path,
+      "/__workbench_hmr/lib/workbench/hmr/preview.html?component=poi-map",
+    );
   });
 });

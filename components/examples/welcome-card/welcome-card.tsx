@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { cn } from "@/lib/ui/cn";
+import { getThemeBoundaryAttrs } from "@/lib/workbench/theme/theme-boundary";
 
 export interface WelcomeCardProps {
   title: string;
@@ -16,33 +17,25 @@ export function WelcomeCard({
   theme = "light",
   actions,
 }: WelcomeCardProps) {
-  const isDark = theme === "dark";
+  const themeBoundary = getThemeBoundaryAttrs(theme);
 
   return (
     <div
+      data-theme={themeBoundary["data-theme"]}
       className={cn(
-        "flex h-full w-full flex-col items-center justify-center p-8",
-        isDark ? "bg-zinc-900 text-white" : "bg-white text-zinc-900",
+        themeBoundary.className,
+        "flex h-full w-full flex-col items-center justify-center bg-background p-8 text-foreground",
       )}
+      style={themeBoundary.style}
     >
       <div className="max-w-md text-center">
         <div className="mb-4 text-4xl">👋</div>
 
-        <h1
-          className={cn(
-            "mb-3 font-semibold text-2xl",
-            isDark ? "text-white" : "text-zinc-900",
-          )}
-        >
+        <h1 className="mb-3 font-semibold text-2xl text-foreground">
           {title}
         </h1>
 
-        <p
-          className={cn(
-            "mb-6 text-base leading-relaxed",
-            isDark ? "text-zinc-400" : "text-zinc-600",
-          )}
-        >
+        <p className="mb-6 text-base leading-relaxed text-muted-foreground">
           {message}
         </p>
 

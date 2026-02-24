@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { getThemeBoundaryAttrs } from "@/lib/workbench/theme/theme-boundary";
 import { cn } from "./_adapter";
 import { MapView } from "./map-view";
 import { CategoryFilterMenu } from "./poi-category-filter-menu";
@@ -152,12 +153,16 @@ export function POIMap({
       className="h-full w-full"
     />
   );
+  const themeBoundary = getThemeBoundaryAttrs(theme);
 
   if (isFullscreen) {
     return (
       <div
         id={id}
+        data-theme={themeBoundary["data-theme"]}
         className={cn(
+          themeBoundary.className,
+          "bg-background text-foreground",
           isDesktopHost
             ? "relative flex h-full w-full gap-2"
             : "relative flex h-full w-full gap-2 p-2 sm:gap-3 sm:p-3",
@@ -165,9 +170,10 @@ export function POIMap({
         )}
         data-tool-ui-id={id}
         data-slot="poi-map"
+        style={themeBoundary.style}
       >
         {modalOverlay}
-        <div className="flex w-80 shrink-0 flex-col overflow-hidden rounded-xl bg-card/50 py-3 backdrop-blur-sm">
+        <div className="flex w-80 shrink-0 flex-col overflow-hidden bg-muted/50 rounded-xl p-2">
           <div className="mb-3 px-2.5">
             <div className="flex items-center justify-between">
               <span className="font-semibold text-base tracking-tight">
@@ -194,10 +200,10 @@ export function POIMap({
 
         <div
           className={
-            isDesktopHost
-              ? "relative isolate min-w-0 flex-1 overflow-hidden"
-              : "relative isolate min-w-0 flex-1 overflow-hidden rounded-2xl border border-border/50 shadow-sm"
-          }
+             cn(
+              "relative isolate min-w-0 flex-1 overflow-hidden rounded-2xl",
+              {"border border-border shadow-sm": !isDesktopHost}
+            )}
         >
           {mapView}
           <MapControls
@@ -213,11 +219,14 @@ export function POIMap({
   return (
     <div
       id={id}
+      data-theme={themeBoundary["data-theme"]}
       className={cn(
-        "relative isolate h-full w-full overflow-hidden rounded-2xl border border-border/50",
+        themeBoundary.className,
+        "bg-background text-foreground",
+        "relative isolate h-full w-full overflow-hidden rounded-2xl",
         className,
       )}
-      style={{ boxShadow: INLINE_CARD_SHADOW }}
+      style={{ ...themeBoundary.style, boxShadow: INLINE_CARD_SHADOW }}
       data-tool-ui-id={id}
       data-slot="poi-map"
     >

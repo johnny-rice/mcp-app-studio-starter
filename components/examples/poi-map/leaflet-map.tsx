@@ -18,11 +18,17 @@ function createMarkerIcon(
   category: POICategory,
   isSelected: boolean,
   isFavorite: boolean,
+  theme: "light" | "dark",
 ): L.DivIcon {
   const color = CATEGORY_COLORS[category];
   const outerSize = 44;
   const innerSize = isSelected ? 24 : 18;
   const borderWidth = isSelected ? 2.5 : 2;
+  const markerBorderColor =
+    theme === "dark" ? "rgba(255,255,255,0.45)" : "white";
+
+  const favoriteGlyphColor =
+    theme === "dark" ? "rgb(250 250 250)" : "rgb(255 255 255)";
 
   const shadow = isSelected
     ? `0 0 0 4px ${color}33, 0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.1)`
@@ -46,7 +52,7 @@ function createMarkerIcon(
           width: ${innerSize}px;
           height: ${innerSize}px;
           background: ${color};
-          border: ${borderWidth}px solid white;
+          border: ${borderWidth}px solid ${markerBorderColor};
           border-radius: 50%;
           box-shadow: ${shadow};
           display: flex;
@@ -58,7 +64,11 @@ function createMarkerIcon(
         onmouseenter="this.style.transform='scale(1.15)'"
         onmouseleave="this.style.transform='scale(1)'"
         >
-          ${isFavorite ? `<span style="color: white; font-size: ${innerSize * 0.5}px; line-height: 1; margin-top: -1px;">★</span>` : ""}
+          ${
+            isFavorite
+              ? `<span style="color: ${favoriteGlyphColor}; font-size: ${innerSize * 0.5}px; line-height: 1; margin-top: -1px;">★</span>`
+              : ""
+          }
         </div>
       </div>
     `,
@@ -140,6 +150,7 @@ interface POIMarkerProps {
   poi: POI;
   isSelected: boolean;
   isFavorite: boolean;
+  theme: "light" | "dark";
   onSelect: (id: string) => void;
 }
 
@@ -147,11 +158,12 @@ const POIMarker = memo(function POIMarker({
   poi,
   isSelected,
   isFavorite,
+  theme,
   onSelect,
 }: POIMarkerProps) {
   const icon = useMemo(
-    () => createMarkerIcon(poi.category, isSelected, isFavorite),
-    [poi.category, isSelected, isFavorite],
+    () => createMarkerIcon(poi.category, isSelected, isFavorite, theme),
+    [poi.category, isSelected, isFavorite, theme],
   );
 
   const eventHandlers = useMemo(
@@ -191,7 +203,7 @@ export default function LeafletMap({
     '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
 
   return (
-    <div className={cn("relative h-full w-full", className)}>
+    <div className={cn("relative h-full w-full bg-background", className)}>
       <MapContainer
         center={[center.lat, center.lng]}
         zoom={zoom}
@@ -208,6 +220,7 @@ export default function LeafletMap({
             poi={poi}
             isSelected={poi.id === selectedPoiId}
             isFavorite={favoriteIds.has(poi.id)}
+            theme={theme}
             onSelect={onSelectPoi}
           />
         ))}

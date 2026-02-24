@@ -4,7 +4,7 @@ import { existsSync } from "node:fs";
 import net from "node:net";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
-import { detectPackageManager, runScriptArgs } from "./pm";
+import { detectPackageManager, execBinArgs, runScriptArgs } from "./pm";
 
 const ROOT = process.cwd();
 const SERVER_DIR = join(ROOT, "server");
@@ -102,20 +102,28 @@ process.on("unhandledRejection", (err) => {
 
 const DEFAULT_NEXT_PORT = 3002;
 const DEFAULT_MCP_PORT = Number(process.env.PORT ?? "3001") || 3001;
+const DEFAULT_WORKBENCH_VITE_PORT =
+  Number(process.env.WORKBENCH_VITE_PORT ?? "3173") || 3173;
 
 async function main() {
   const NEXT_PORT = await findAvailablePort(DEFAULT_NEXT_PORT);
+  const WORKBENCH_VITE_PORT = await findAvailablePort(DEFAULT_WORKBENCH_VITE_PORT, {
+    exclude: new Set([NEXT_PORT]),
+  });
 
   const MCP_PORT = hasServer
     ? await findAvailablePort(DEFAULT_MCP_PORT, {
         // Avoid conflicting with Next's resolved port.
-        exclude: new Set([NEXT_PORT]),
+        exclude: new Set([NEXT_PORT, WORKBENCH_VITE_PORT]),
       })
     : null;
 
   console.log("\n\x1b[2mStarting development...\x1b[0m\n");
   console.log(`  \x1b[90m•\x1b[0m Package manager: ${pm}`);
   console.log(`  \x1b[36m→\x1b[0m Next.js:    http://localhost:${NEXT_PORT}`);
+  console.log(
+    `  \x1b[33m→\x1b[0m Workbench HMR Runtime: http://localhost:${WORKBENCH_VITE_PORT}`,
+  );
   if (hasServer) {
     console.log(
       `  \x1b[35m→\x1b[0m MCP Server: http://localhost:${MCP_PORT}/mcp`,
@@ -126,13 +134,36 @@ async function main() {
   // Start Next.js directly instead of via the dev:next script so the port
   // can be chosen dynamically.  If you add flags to dev:next (e.g. --turbopack),
   // mirror them here as well.
-  const nextProcess = spawn("npx", ["next", "dev", "-p", String(NEXT_PORT)], {
+  const nextCmd = execBinArgs(pm, "next", ["dev", "-p", String(NEXT_PORT)]);
+  const nextProcess = spawn(nextCmd.command, nextCmd.args, {
     cwd: ROOT,
     stdio: "inherit",
     shell: process.platform === "win32",
     detached: process.platform !== "win32",
+    env: {
+      ...process.env,
+      WORKBENCH_VITE_PORT: String(WORKBENCH_VITE_PORT),
+    },
   });
   children.push(nextProcess);
+
+  const viteCmd = execBinArgs(pm, "vite", [
+    "--config",
+    "vite.workbench.config.ts",
+    "--port",
+    String(WORKBENCH_VITE_PORT),
+  ]);
+  const viteProcess = spawn(viteCmd.command, viteCmd.args, {
+    cwd: ROOT,
+    stdio: "inherit",
+    shell: process.platform === "win32",
+    detached: process.platform !== "win32",
+    env: {
+      ...process.env,
+      WORKBENCH_VITE_PORT: String(WORKBENCH_VITE_PORT),
+    },
+  });
+  children.push(viteProcess);
 
   // Start MCP server if exists
   if (hasServer) {

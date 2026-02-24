@@ -42,7 +42,7 @@ export function generateHtml(options: GenerateHtmlOptions): string {
         : "";
 
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -62,6 +62,8 @@ export function generateHtml(options: GenerateHtmlOptions): string {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      background: var(--background);
+      color: var(--foreground);
     }
   </style>
 </head>

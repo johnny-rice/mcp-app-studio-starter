@@ -77,7 +77,7 @@ describe("WidgetIframeHost bridge lifecycle regression", () => {
 
     // Changing srcDoc reloads the iframe and resets widget-local state.
     // Globals are delivered via bridgeRef.sendGlobals and should not rebuild srcDoc.
-    assert.deepEqual(deps, ["widgetBundle", "cssBundle", "demoMode"]);
+    assert.deepEqual(deps, ["widgetBundle", "cssBundle", "demoMode", "hmrSrc"]);
   });
 
   it("keeps AppBridge connection effect independent from store/callback churn", () => {
@@ -133,10 +133,17 @@ describe("WidgetIframeHost bridge lifecycle regression", () => {
     );
   });
 
-  it("keeps iframe surface transparent so host surface can show through", () => {
+  it("uses host-matching dark shell background to prevent white flashes", () => {
     const source = fs.readFileSync(TARGET_FILE, "utf8");
 
-    assert.doesNotMatch(source, /const iframeBackground =/);
-    assert.match(source, /backgroundColor: "transparent"/);
+    assert.match(source, /const iframeShellBackground =/);
+    assert.match(source, /effectiveTheme === "dark" \? "rgb\(23 23 23\)" : "transparent"/);
+    assert.match(source, /backgroundColor: iframeShellBackground/);
+  });
+
+  it("supports URL-based HMR iframe loading with src fallback", () => {
+    const source = fs.readFileSync(TARGET_FILE, "utf8");
+    assert.match(source, /src=\{hmrSrc \?\? undefined\}/);
+    assert.match(source, /srcDoc=\{srcdoc \?\? undefined\}/);
   });
 });

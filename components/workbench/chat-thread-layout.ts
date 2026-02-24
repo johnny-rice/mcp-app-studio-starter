@@ -41,9 +41,7 @@ export function getLayoutConfig({
   isDark: boolean;
   widgetHeight: number;
 }): LayoutConfig {
-  const cardTone = isDark
-    ? "border-neutral-800 bg-neutral-900"
-    : "border-neutral-200 bg-white";
+  const cardTone = "border-border bg-background";
 
   switch (variant) {
     case "fullscreen":
@@ -56,7 +54,7 @@ export function getLayoutConfig({
         morphWrapperClassName: "flex-1 w-full h-full",
         morphContainerClassName: cn(
           "h-full w-full overflow-auto transition-colors",
-          isDark ? "bg-neutral-900" : "bg-white",
+          "bg-background",
         ),
         morphContainerStyle: { overscrollBehavior: "contain" },
         contentViewportClassName: "h-full",

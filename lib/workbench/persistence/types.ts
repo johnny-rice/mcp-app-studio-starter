@@ -20,6 +20,7 @@ export interface LocalStoragePreferences {
   collapsedSections: Record<string, boolean>;
   isLeftPanelOpen: boolean;
   isRightPanelOpen: boolean;
+  useHmrPreview: boolean;
 }
 
 export interface SessionStorageState {

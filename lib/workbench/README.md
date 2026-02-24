@@ -9,6 +9,16 @@ The workbench is a **local MCP Apps host simulator** for developing embedded UIs
   exercise **ChatGPT-only extensions** (widgetState, file uploads, host modals)
   during development.
 
+## Theming Contract
+
+Use the shared framework-agnostic contract:
+
+- `data-theme` + semantic CSS variables (host-driven)
+- one local theme boundary at widget root
+- no hardcoded light/dark color assumptions
+
+Reference: `lib/workbench/THEMING_CONTRACT.md`
+
 ## Why You Might See `openai/*` References
 
 There are two kinds of "OpenAI/ChatGPT" references you may see in workbench code:

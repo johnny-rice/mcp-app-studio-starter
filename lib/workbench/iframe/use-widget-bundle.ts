@@ -43,6 +43,17 @@ export function buildBundleRequestPath(
   return `/api/workbench/bundle?${requestParams.toString()}`;
 }
 
+export function buildHmrPreviewPath(
+  componentId: string,
+  currentLocationSearch: string,
+): string {
+  const requestParams = new URLSearchParams({ component: componentId });
+  if (isDemoBundleRequest(currentLocationSearch)) {
+    requestParams.set("demo", "true");
+  }
+  return `/__workbench_hmr/lib/workbench/hmr/preview.html?${requestParams.toString()}`;
+}
+
 function buildDevFallbackBundlePath(componentId: string): string {
   const requestParams = new URLSearchParams({ id: componentId });
   if (
@@ -54,12 +65,19 @@ function buildDevFallbackBundlePath(componentId: string): string {
   return `/api/workbench/bundle?${requestParams.toString()}`;
 }
 
-export function useWidgetBundle(componentId: string): BundleState {
+export function useWidgetBundle(
+  componentId: string,
+  options?: { enabled?: boolean },
+): BundleState {
+  const enabled = options?.enabled ?? true;
   const currentLocationSearch =
     typeof window === "undefined" ? "" : window.location.search;
   const cacheKey = buildBundleCacheKey(componentId, currentLocationSearch);
 
   const [state, setState] = useState<BundleState>(() => {
+    if (!enabled) {
+      return { loading: false, error: null, bundle: null };
+    }
     const cached = bundleCache.get(cacheKey);
     if (cached) {
       return { loading: false, error: null, bundle: cached };
@@ -70,6 +88,12 @@ export function useWidgetBundle(componentId: string): BundleState {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
+    if (!enabled) {
+      abortControllerRef.current?.abort();
+      setState({ loading: false, error: null, bundle: null });
+      return;
+    }
+
     const cached = bundleCache.get(cacheKey);
     if (cached) {
       setState({ loading: false, error: null, bundle: cached });
@@ -120,7 +144,7 @@ export function useWidgetBundle(componentId: string): BundleState {
     return () => {
       controller.abort();
     };
-  }, [cacheKey, componentId, currentLocationSearch]);
+  }, [cacheKey, componentId, currentLocationSearch, enabled]);
 
   return state;
 }
