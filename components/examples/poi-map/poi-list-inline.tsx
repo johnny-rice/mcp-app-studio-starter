@@ -119,14 +119,14 @@ export function POIListInline({
       </div>
       <div
         className={cn(
-          "pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-white/80 to-transparent transition-opacity duration-200 dark:from-neutral-900/80",
+          "pointer-events-none absolute inset-y-0 left-0 w-8 bg-linear-to-r from-background/80 to-transparent transition-opacity duration-200",
           scrollState.atStart ? "opacity-0" : "opacity-100",
         )}
         aria-hidden="true"
       />
       <div
         className={cn(
-          "pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white/80 to-transparent transition-opacity duration-200 dark:from-neutral-900/80",
+          "pointer-events-none absolute inset-y-0 right-0 w-8 bg-linear-to-l from-background/80 to-transparent transition-opacity duration-200",
           scrollState.atEnd ? "opacity-0" : "opacity-100",
         )}
         aria-hidden="true"

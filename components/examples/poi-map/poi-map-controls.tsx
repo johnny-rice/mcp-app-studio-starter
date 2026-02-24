@@ -4,7 +4,7 @@ import { Maximize2, Minimize2, RefreshCw } from "lucide-react";
 import { Button, Tooltip, TooltipContent, TooltipTrigger } from "./_adapter";
 
 const MAP_CONTROL_BUTTON_CLASS =
-  "size-10 rounded-full bg-background/90 backdrop-blur-md transition-all hover:bg-background active:scale-95";
+  "size-10 rounded-full border border-border/70 bg-background/90 shadow-sm backdrop-blur-md transition-transform hover:bg-background active:scale-95";
 
 interface MapControlsProps {
   isFullscreen: boolean;

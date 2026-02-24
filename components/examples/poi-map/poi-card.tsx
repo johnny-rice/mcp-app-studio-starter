@@ -67,7 +67,7 @@ export const POICard = memo(function POICard({
       <button
         onClick={() => onSelect(poi.id)}
         className={cn(
-          "group relative flex h-[88px] w-44 shrink-0 snap-start flex-col rounded-xl border p-3 text-left transition-all duration-150",
+          "group relative flex h-[88px] w-44 shrink-0 snap-start flex-col rounded-xl border p-3 text-left transition-transform duration-150",
           "bg-card hover:bg-card/90 active:scale-[0.97]",
           isSelected
             ? "border-primary shadow-md ring-2 ring-primary/20"
@@ -157,7 +157,7 @@ export const POICard = memo(function POICard({
                   />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="left" className="z-[1001]">
+              <TooltipContent side="left" className="z-1001">
                 {isFavorite ? "Remove from favorites" : "Add to favorites"}
               </TooltipContent>
             </Tooltip>
