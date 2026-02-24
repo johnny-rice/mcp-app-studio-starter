@@ -60,7 +60,10 @@ export function ModalOverlay({
   const isFavorite = favoriteIds.has(poi.id);
 
   return (
-    <div className="absolute inset-0 z-1100 flex items-end justify-center p-4 sm:items-center sm:p-6">
+    <div
+      className="absolute inset-0 flex items-end justify-center p-4 sm:items-center sm:p-6"
+      style={{ zIndex: 1100 }}
+    >
       <div
         className="fade-in absolute inset-0 animate-in bg-black/50 backdrop-blur-[2px] duration-200"
         onClick={onDismissModal}

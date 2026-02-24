@@ -18,7 +18,10 @@ export function MapControls({
   onToggleFullscreen,
 }: MapControlsProps) {
   return (
-    <div className="absolute top-3 right-3 z-1000 flex gap-1.5">
+    <div
+      className="absolute top-3 right-3 flex gap-1.5"
+      style={{ zIndex: 1000 }}
+    >
       {onRefresh && (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -31,7 +34,9 @@ export function MapControls({
               <RefreshCw className="size-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent className="z-1001">Refresh locations</TooltipContent>
+          <TooltipContent style={{ zIndex: 1001 }}>
+            Refresh locations
+          </TooltipContent>
         </Tooltip>
       )}
       <Tooltip>
@@ -49,7 +54,7 @@ export function MapControls({
             )}
           </Button>
         </TooltipTrigger>
-        <TooltipContent className="z-1001">
+        <TooltipContent style={{ zIndex: 1001 }}>
           {isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
         </TooltipContent>
       </Tooltip>

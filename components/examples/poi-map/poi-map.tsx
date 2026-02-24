@@ -230,12 +230,18 @@ export function POIMap({
       />
 
       {title && (
-        <div className="absolute top-3 left-3 z-1000 rounded-xl bg-background/90 px-3.5 py-2 backdrop-blur-md">
+        <div
+          className="absolute top-3 left-3 rounded-xl bg-background/90 px-3.5 py-2 backdrop-blur-md"
+          style={{ zIndex: 1000 }}
+        >
           <span className="font-medium text-sm">{title}</span>
         </div>
       )}
 
-      <div className="absolute right-3 bottom-3 left-3 z-1000">
+      <div
+        className="absolute right-3 bottom-3 left-3"
+        style={{ zIndex: 1000 }}
+      >
         <POIListInline
           pois={filteredPois}
           selectedPoiId={selectedPoiId}
