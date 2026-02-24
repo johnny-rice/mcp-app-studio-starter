@@ -182,33 +182,36 @@ export function ChatThread({ children, className }: ChatThreadProps) {
   let morphContainerStyle: React.CSSProperties = {};
 
   if (isFullscreen) {
-    morphWrapperClasses = "flex-1 w-full h-full";
+    morphWrapperClasses = "flex-1 w-full h-full shrink-0";
     morphContainerClasses = cn("h-full w-full overflow-auto transition-colors", effectiveIsDark ? "bg-neutral-900" : "bg-white");
     morphContainerStyle = { overscrollBehavior: "contain" };
   } else if (isPip) {
-    morphWrapperClasses = "sticky top-3 z-10 flex justify-center w-full px-3 pointer-events-none";
+    morphWrapperClasses = "sticky top-3 z-10 flex justify-center w-full px-3 pointer-events-none shrink-0";
     morphContainerClasses = cn(
       "pointer-events-auto w-full max-w-[770px] overflow-hidden rounded-2xl border shadow-lg transition-colors",
       effectiveIsDark ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"
     );
     morphContainerStyle = { height: widgetHeight, maxHeight: widgetHeight };
   } else if (conversationMode) {
-    morphWrapperClasses = "w-full z-10 flex justify-center";
+    morphWrapperClasses = cn(
+      "w-full z-10 flex justify-center shrink-0"
+    );
     morphContainerClasses = cn(
       "w-full max-w-[770px] overflow-hidden rounded-2xl border shadow-sm transition-colors",
-      effectiveIsDark ? "border-neutral-700 bg-neutral-900" : "border-neutral-200 bg-white"
+      effectiveIsDark ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white",
+      "border-solid border"
     );
     morphContainerStyle = { height: widgetHeight, maxHeight: widgetHeight };
   } else {
     // Isolated
     morphWrapperClasses = cn(
-      "relative z-10 flex h-full w-full flex-col overflow-hidden transition-colors",
+      "relative z-10 flex h-full w-full flex-col overflow-hidden transition-colors shrink-0",
       isDesktopDevice ? "items-center justify-center" : "items-center justify-center px-4"
     );
     morphContainerClasses = cn(
       "overflow-hidden transition-colors",
       isDesktopDevice
-        ? "h-full w-full max-w-[770px] border-none shadow-none bg-transparent"
+        ? "h-full w-full max-w-[770px] border shadow-sm rounded-2xl bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800"
         : cn(
             "w-full max-w-[770px] rounded-2xl border shadow-sm",
             effectiveIsDark ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"
