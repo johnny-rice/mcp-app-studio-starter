@@ -84,7 +84,7 @@ export function createMcpError(
 
 export async function callMcpTool(
   request: McpToolCallRequest,
-  options?: { signal?: AbortSignal }
+  options?: { signal?: AbortSignal },
 ): Promise<McpToolCallResponse> {
   const startTime = performance.now();
 
@@ -206,37 +206,5 @@ export async function fetchMcpTools(
       success: false,
       error: createMcpError(errorType, message),
     };
-  }
-}
-
-export async function checkMcpServerHealth(
-  serverUrl: string,
-): Promise<{ healthy: boolean; error?: string }> {
-  try {
-    const response = await fetch("/api/mcp-proxy", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        method: "tools/list",
-        serverUrl,
-      }),
-      signal: AbortSignal.timeout(3000),
-    });
-
-    if (response.ok) {
-      const data = await response.json().catch(() => ({}));
-      if (!data.error) {
-        return { healthy: true };
-      }
-      return { healthy: false, error: data.error?.message ?? "MCP Error" };
-    }
-
-    return { healthy: false, error: `Server returned ${response.status}` };
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to connect";
-    return { healthy: false, error: message };
   }
 }

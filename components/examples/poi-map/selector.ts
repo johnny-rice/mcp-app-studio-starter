@@ -1,6 +1,6 @@
 const SELECTOR_ESCAPE_RE = /["\\#]/g;
 
-export function escapeSelectorValue(value: string): string {
+function escapeSelectorValue(value: string): string {
   if (
     typeof globalThis.CSS !== "undefined" &&
     typeof globalThis.CSS.escape === "function"

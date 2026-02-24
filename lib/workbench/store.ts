@@ -265,12 +265,14 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
     set((prev) => {
       // Create a deep merge helper specifically for object state
       function isObject(item: unknown): item is Record<string, unknown> {
-        return Boolean(item && typeof item === "object" && !Array.isArray(item));
+        return Boolean(
+          item && typeof item === "object" && !Array.isArray(item),
+        );
       }
 
       function mergeDeep(
         target: Record<string, unknown>,
-        source: Record<string, unknown>
+        source: Record<string, unknown>,
       ): Record<string, unknown> {
         const output = Object.assign({}, target);
         if (isObject(target) && isObject(source)) {
@@ -281,7 +283,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
               } else {
                 output[key] = mergeDeep(
                   target[key] as Record<string, unknown>,
-                  source[key] as Record<string, unknown>
+                  source[key] as Record<string, unknown>,
                 );
               }
             } else {
@@ -293,7 +295,10 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
       }
 
       return {
-        widgetState: mergeDeep((prev.widgetState ?? {}) as Record<string, unknown>, state),
+        widgetState: mergeDeep(
+          (prev.widgetState ?? {}) as Record<string, unknown>,
+          state,
+        ),
       };
     }),
   setMaxHeight: (height) => set(() => ({ maxHeight: height })),
@@ -616,12 +621,8 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
 export const useSelectedComponent = () =>
   useWorkbenchStore((s) => s.selectedComponent);
 export const useDisplayMode = () => useWorkbenchStore((s) => s.displayMode);
-export const usePreviousDisplayMode = () =>
-  useWorkbenchStore((s) => s.previousDisplayMode);
 export const useIsTransitioning = () =>
   useWorkbenchStore((s) => s.isTransitioning);
-export const useTransitionFrom = () =>
-  useWorkbenchStore((s) => s.transitionFrom);
 export const useWorkbenchTheme = () => useWorkbenchStore((s) => s.previewTheme);
 export const useDeviceType = () => useWorkbenchStore((s) => s.deviceType);
 export const useConsoleLogs = () => useWorkbenchStore((s) => s.consoleLogs);
@@ -685,12 +686,8 @@ export const useOpenAIGlobals = (): OpenAIGlobals => {
 
 export const useIsWidgetClosed = () =>
   useWorkbenchStore((s) => s.isWidgetClosed);
-export const useWidgetSessionId = () =>
-  useWorkbenchStore((s) => s.widgetSessionId);
 export const useActiveToolCall = () =>
   useWorkbenchStore((s) => s.activeToolCall);
-export const useCancelActiveToolCall = () =>
-  useWorkbenchStore((s) => s.cancelActiveToolCall);
 export const useIsConsoleOpen = () => useWorkbenchStore((s) => s.isConsoleOpen);
 export const useIsLeftPanelOpen = () =>
   useWorkbenchStore((s) => s.isLeftPanelOpen);

@@ -153,14 +153,3 @@ export function InlineResponseConfig({
     </div>
   );
 }
-
-export function useToolHasCustomConfig(toolName: string): boolean {
-  const simulation = useSimulation();
-  const config = simulation.tools[toolName];
-  if (!config) return false;
-
-  return (
-    config.responseMode !== "success" ||
-    JSON.stringify(config.responseData) !== JSON.stringify({ success: true })
-  );
-}

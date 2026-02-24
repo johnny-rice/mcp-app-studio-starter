@@ -103,13 +103,6 @@ export function POIMapSDK() {
     [currentWidgetState, hasWidgetState, setPersistedState],
   );
 
-  const handleRequestDisplayMode = useCallback(
-    async (nextMode: DisplayMode) => {
-      await requestDisplayMode(nextMode);
-    },
-    [requestDisplayMode],
-  );
-
   const handleRefresh = useCallback(async () => {
     await callTool("refresh_pois", {
       center: currentWidgetState.mapCenter,
@@ -156,20 +149,6 @@ export function POIMapSDK() {
     setLocalView(null);
   }, []);
 
-  const handleOpenExternal = useCallback(
-    (url: string) => {
-      void openLink(url);
-    },
-    [openLink],
-  );
-
-  const handleSendFollowUpMessage = useCallback(
-    async (prompt: string) => {
-      await sendMessage(prompt);
-    },
-    [sendMessage],
-  );
-
   return (
     <POIMap
       id={parsed.id}
@@ -184,14 +163,14 @@ export function POIMapSDK() {
       isDesktopHost={isDesktopHost}
       view={localView}
       onWidgetStateChange={handleWidgetStateChange}
-      onRequestDisplayMode={handleRequestDisplayMode}
+      onRequestDisplayMode={requestDisplayMode}
       onRefresh={handleRefresh}
       onToggleFavorite={handleToggleFavorite}
       onFilterCategory={handleFilterCategory}
       onViewDetails={handleViewDetails}
       onDismissModal={handleDismissModal}
-      onOpenExternal={handleOpenExternal}
-      onSendFollowUpMessage={handleSendFollowUpMessage}
+      onOpenExternal={openLink}
+      onSendFollowUpMessage={sendMessage}
     />
   );
 }

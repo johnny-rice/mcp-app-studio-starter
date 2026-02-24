@@ -255,14 +255,3 @@ export async function handleMockToolCall(
   const handler = mockHandlers[toolName] || defaultHandler;
   return handler(args);
 }
-
-export function registerMockHandler(
-  toolName: string,
-  handler: MockHandler,
-): void {
-  mockHandlers[toolName] = handler;
-}
-
-export function getAvailableMockTools(): string[] {
-  return Object.keys(mockHandlers);
-}
