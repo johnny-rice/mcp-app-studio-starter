@@ -11,6 +11,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { flushSync } from "react-dom";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { clearFiles, getFileUrl, storeFile } from "../file-store";
 import { callMcpTool } from "../mcp-client";
@@ -398,32 +399,23 @@ export function WidgetIframeHost({
         return { mode: args.mode };
       }
 
-      store.setTransitioning(true);
-
-      const toFullscreen = args.mode === "fullscreen";
-      const root = document.documentElement;
-      root.style.setProperty(
-        "--morph-radius-from",
-        toFullscreen ? "0.75rem" : "0",
-      );
-      root.style.setProperty(
-        "--morph-radius-to",
-        toFullscreen ? "0" : "0.75rem",
-      );
-
-      (
-        document as Document & {
-          startViewTransition: (callback: () => void) => void;
-        }
-      ).startViewTransition(() => {
-        store.setDisplayMode(args.mode);
+      flushSync(() => {
+        store.setTransitioning(true);
       });
 
-      setTimeout(() => {
+      const transition = (
+        document as Document & {
+          startViewTransition: (callback: () => void) => { finished: Promise<void> };
+        }
+      ).startViewTransition(() => {
+        flushSync(() => {
+          store.setDisplayMode(args.mode);
+        });
+      });
+
+      transition.finished.finally(() => {
         store.setTransitioning(false);
-        root.style.removeProperty("--morph-radius-from");
-        root.style.removeProperty("--morph-radius-to");
-      }, MORPH_TIMING.viewTransitionDuration);
+      });
 
       return { mode: args.mode };
     },

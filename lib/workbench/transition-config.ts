@@ -4,4 +4,3 @@ export const MORPH_TIMING = {
 
 export const VIEW_TRANSITION_NAME = "workbench-app-container";
 export const VIEW_TRANSITION_PARENT_NAME = "workbench-preview-panel";
-export const VIEW_TRANSITION_ROOT_NAME = "workbench-shell";

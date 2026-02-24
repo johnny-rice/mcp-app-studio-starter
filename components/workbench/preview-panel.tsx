@@ -9,7 +9,6 @@ import {
 } from "@/lib/workbench/store";
 import {
   VIEW_TRANSITION_PARENT_NAME,
-  VIEW_TRANSITION_ROOT_NAME,
 } from "@/lib/workbench/transition-config";
 import { ModalOverlay } from "./modal-overlay";
 import { PreviewToolbar } from "./preview-toolbar";
@@ -35,21 +34,18 @@ export function PreviewPanel() {
   }, [setView]);
 
   return (
-    <div
-      className="relative flex h-full flex-col overflow-hidden rounded-lg border border-border/50"
-      style={
-        {
-          viewTransitionName: isTransitioning
-            ? VIEW_TRANSITION_PARENT_NAME
-            : undefined,
-          viewTransitionGroup: isTransitioning
-            ? VIEW_TRANSITION_ROOT_NAME
-            : undefined,
-        } as React.CSSProperties
-      }
-    >
+    <div className="relative flex h-full flex-col overflow-hidden rounded-lg border border-border/50">
       <PreviewToolbar />
-      <div className="relative min-h-0 flex-1">
+      <div
+        className="relative min-h-0 flex-1"
+        style={
+          {
+            viewTransitionName: isTransitioning
+              ? VIEW_TRANSITION_PARENT_NAME
+              : undefined,
+          } as React.CSSProperties
+        }
+      >
         <PreviewContent />
         {isWidgetClosed && (
           <WidgetClosedOverlay onReopen={handleReopenWidget} />
