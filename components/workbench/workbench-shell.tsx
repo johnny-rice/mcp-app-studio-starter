@@ -47,7 +47,7 @@ export function WorkbenchShell() {
   const selectedComponentId = useSelectedComponent();
   const activeComponent = getComponent(selectedComponentId);
 
-  useWorkbenchPersistence();
+  const persistenceReady = useWorkbenchPersistence();
 
   React.useEffect(() => {
     setMounted(true);
@@ -196,7 +196,11 @@ export function WorkbenchShell() {
       </div>
 
       <div className="min-h-0 flex-1 overflow-hidden">
-        <WorkbenchLayout />
+        {persistenceReady ? (
+          <WorkbenchLayout />
+        ) : (
+          <div className="h-full w-full bg-background" />
+        )}
       </div>
       <OnboardingModal />
       {isSDKGuideOpen ? <SDKGuideModal /> : null}

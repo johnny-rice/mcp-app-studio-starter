@@ -1,7 +1,8 @@
 "use client";
 
 import { ArrowUp } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { useHydratedOnce } from "@/hooks/use-hydrated-once";
 import { cn } from "@/lib/ui/cn";
 import {
   useDeviceType,
@@ -18,16 +19,12 @@ interface MockComposerProps {
 export function MockComposer({ variant = "bottom" }: MockComposerProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isMultiline, setIsMultiline] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const theme = useWorkbenchStore((s) => s.previewTheme);
   const deviceType = useDeviceType();
   const isTransitioning = useIsTransitioning();
   const isMobile = deviceType === "mobile";
-  const isDark = mounted && theme === "dark";
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const hydrated = useHydratedOnce();
+  const isDark = hydrated && theme === "dark";
 
   const handleInput = useCallback(() => {
     const textarea = textareaRef.current;
@@ -46,7 +43,7 @@ export function MockComposer({ variant = "bottom" }: MockComposerProps) {
 
   return (
     <div
-      data-theme={mounted ? theme : "light"}
+      data-theme={theme}
       className={cn(
         "z-20 flex justify-center",
         isOverlay ? "absolute inset-x-0 bottom-0 pt-8" : "w-full shrink-0",
@@ -63,9 +60,11 @@ export function MockComposer({ variant = "bottom" }: MockComposerProps) {
       <div
         className={cn(
           "relative flex w-full items-center border shadow-sm transition-colors",
-          isDark
-            ? "border-neutral-800 bg-neutral-900"
-            : "border-neutral-200 bg-white",
+          !hydrated
+            ? "border-border bg-background"
+            : isDark
+              ? "border-neutral-800 bg-neutral-900"
+              : "border-neutral-200 bg-white",
           isMobile
             ? "min-h-12 rounded-2xl pr-1.5 pl-4"
             : "min-h-14 max-w-[770px] rounded-full pr-2 pl-6",
@@ -79,9 +78,11 @@ export function MockComposer({ variant = "bottom" }: MockComposerProps) {
           onInput={handleInput}
           className={cn(
             "w-full resize-none self-center bg-transparent leading-6 outline-none transition-colors",
-            isDark
-              ? "text-neutral-100 placeholder:text-neutral-500"
-              : "text-neutral-900 placeholder:text-neutral-400",
+            !hydrated
+              ? "text-foreground placeholder:text-muted-foreground"
+              : isDark
+                ? "text-neutral-100 placeholder:text-neutral-500"
+                : "text-neutral-900 placeholder:text-neutral-400",
             isMobile
               ? "max-h-[200px] pr-10 text-sm"
               : "max-h-[300px] pr-12 text-base",
@@ -91,7 +92,7 @@ export function MockComposer({ variant = "bottom" }: MockComposerProps) {
           type="button"
           className={cn(
             "flex shrink-0 items-center justify-center rounded-full transition-colors",
-            isDark ? "bg-white" : "bg-neutral-950",
+            !hydrated ? "bg-foreground" : isDark ? "bg-white" : "bg-neutral-950",
             isMobile ? "size-8" : "size-10",
             isMultiline &&
               (isMobile
@@ -102,6 +103,7 @@ export function MockComposer({ variant = "bottom" }: MockComposerProps) {
           <ArrowUp
             className={cn(
               isDark ? "text-neutral-900" : "text-white",
+              !hydrated && "text-background",
               isMobile ? "size-4" : "size-5",
             )}
           />

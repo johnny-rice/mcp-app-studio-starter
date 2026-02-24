@@ -2,7 +2,6 @@
 
 import { MapPin, MessageCircle } from "lucide-react";
 import { type ReactNode, useEffect, useRef } from "react";
-import { useHydratedOnce } from "@/hooks/use-hydrated-once";
 import { cn } from "@/lib/ui/cn";
 import { workbenchComponents } from "@/lib/workbench/component-registry";
 import type { ConversationContext } from "@/lib/workbench/mock-config";
@@ -138,9 +137,7 @@ export function ChatThread({ children, className }: ChatThreadProps) {
   const intrinsicHeight = useWorkbenchStore((s) => s.intrinsicHeight);
   const selectedComponent = useSelectedComponent();
   const mockConfig = useWorkbenchStore((s) => s.mockConfig);
-
-  const mounted = useHydratedOnce();
-  const effectiveIsDark = mounted && theme === "dark";
+  const effectiveIsDark = theme === "dark";
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const widgetHeight = intrinsicHeight !== null ? Math.min(Math.max(intrinsicHeight, 0), maxHeight) : maxHeight;
@@ -217,7 +214,7 @@ export function ChatThread({ children, className }: ChatThreadProps) {
 
           <div className={layout.morphWrapperClassName}>
             <MorphContainer
-              data-theme={mounted ? theme : "light"}
+              data-theme={theme}
               className={layout.morphContainerClassName}
               style={layout.morphContainerStyle}
             >

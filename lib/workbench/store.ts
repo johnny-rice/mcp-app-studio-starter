@@ -197,8 +197,7 @@ function getInitialComponent(): string {
 }
 
 function getInitialTheme(): Theme {
-  if (typeof document === "undefined") return "light";
-  return document.documentElement.classList.contains("dark") ? "dark" : "light";
+  return "light";
 }
 
 export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({

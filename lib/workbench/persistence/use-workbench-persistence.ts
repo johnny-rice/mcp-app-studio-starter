@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useDemoMode } from "@/hooks/use-demo-mode";
 import { getComponent } from "../component-registry";
 import { useWorkbenchStore } from "../store";
@@ -22,10 +22,11 @@ export function useWorkbenchPersistence() {
   const isInitialized = useRef(false);
   const isUpdatingFromUrl = useRef(false);
   const isDemoMode = useDemoMode();
+  const [isReady, setIsReady] = useState(false);
 
   const store = useWorkbenchStore();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (isInitialized.current) return;
     isInitialized.current = true;
 
@@ -33,6 +34,7 @@ export function useWorkbenchPersistence() {
     if (prefs.maxHeight !== undefined) store.setMaxHeight(prefs.maxHeight);
     if (prefs.safeAreaInsets) store.setSafeAreaInsets(prefs.safeAreaInsets);
     if (prefs.locale) store.setLocale(prefs.locale);
+    if (prefs.previewTheme) store.setPreviewTheme(prefs.previewTheme);
     if (prefs.isLeftPanelOpen !== undefined)
       store.setLeftPanelOpen(prefs.isLeftPanelOpen);
     if (!isDemoMode && prefs.isRightPanelOpen !== undefined)
@@ -63,6 +65,8 @@ export function useWorkbenchPersistence() {
         store.setToolInput(component.defaultProps);
       }
     }
+
+    setIsReady(true);
   }, []);
 
   useEffect(() => {
@@ -95,6 +99,7 @@ export function useWorkbenchPersistence() {
         maxHeight: store.maxHeight,
         safeAreaInsets: store.safeAreaInsets,
         locale: store.locale,
+        previewTheme: store.previewTheme,
         collapsedSections: store.collapsedSections,
         isLeftPanelOpen: store.isLeftPanelOpen,
         isRightPanelOpen: store.isRightPanelOpen,
@@ -106,6 +111,7 @@ export function useWorkbenchPersistence() {
     store.maxHeight,
     store.safeAreaInsets,
     store.locale,
+    store.previewTheme,
     store.collapsedSections,
     store.isLeftPanelOpen,
     store.isRightPanelOpen,
@@ -126,4 +132,6 @@ export function useWorkbenchPersistence() {
     }, 500);
     return () => clearTimeout(timer);
   }, [store.mockConfig]);
+
+  return isReady;
 }

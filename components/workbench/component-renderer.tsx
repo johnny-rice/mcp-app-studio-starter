@@ -25,7 +25,9 @@ export function MorphContainer({
     <div
       className={cn(
         className,
-        !prefersReducedMotion && !isTransitioning && "transition-all duration-300 ease-out",
+        !prefersReducedMotion &&
+          !isTransitioning &&
+          "transition-[background-color,border-color,color,box-shadow] duration-300 ease-out",
       )}
       style={
         {

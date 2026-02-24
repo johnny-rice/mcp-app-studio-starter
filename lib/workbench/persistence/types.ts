@@ -16,6 +16,7 @@ export interface LocalStoragePreferences {
   maxHeight: number;
   safeAreaInsets: SafeAreaInsets;
   locale: string;
+  previewTheme: Theme;
   collapsedSections: Record<string, boolean>;
   isLeftPanelOpen: boolean;
   isRightPanelOpen: boolean;

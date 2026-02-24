@@ -36,11 +36,19 @@ function IframeComponentRenderer() {
   const { loading, error, bundle } = useWidgetBundle(selectedComponent);
 
   if (loading) {
-    return <LoadingState />;
+    return (
+      <IsolatedThemeWrapper className="h-full w-full flex">
+        <LoadingState />
+      </IsolatedThemeWrapper>
+    );
   }
 
   if (error) {
-    return <ErrorState error={error} />;
+    return (
+      <IsolatedThemeWrapper className="h-full w-full flex">
+        <ErrorState error={error} />
+      </IsolatedThemeWrapper>
+    );
   }
 
   return (

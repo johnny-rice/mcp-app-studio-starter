@@ -87,9 +87,8 @@ function ResizablePreview() {
   const resizableWidth = useResizableWidth();
   const setResizableWidth = useWorkbenchStore((s) => s.setResizableWidth);
   const theme = useWorkbenchStore((s) => s.previewTheme);
-  const mounted = useHydratedOnce();
-
-  const isDark = mounted && theme === "dark";
+  const hydrated = useHydratedOnce();
+  const isDark = hydrated && theme === "dark";
   const panelGroupRef = useRef<ImperativePanelGroupHandle | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const isSyncingLayout = useRef(false);
@@ -151,10 +150,10 @@ function ResizablePreview() {
   return (
     <div
       ref={containerRef}
-      data-theme={mounted ? theme : "light"}
+      data-theme={theme}
       className={cn(
         "scrollbar-subtle h-full w-full overflow-hidden bg-dot-grid p-4 transition-colors",
-        isDark ? "bg-neutral-900" : "bg-neutral-100"
+        !hydrated ? "bg-background" : isDark ? "bg-neutral-900" : "bg-neutral-100",
       )}
     >
       <div className="flex h-full w-full items-start justify-center">
@@ -186,16 +185,15 @@ function ResizablePreview() {
 function DesktopPreview() {
   const displayMode = useDisplayMode();
   const theme = useWorkbenchStore((s) => s.previewTheme);
-  const mounted = useHydratedOnce();
-
-  const isDark = mounted && theme === "dark";
+  const hydrated = useHydratedOnce();
+  const isDark = hydrated && theme === "dark";
 
   return (
     <div
-      data-theme={mounted ? theme : "light"}
+      data-theme={theme}
       className={cn(
         "h-full w-full overflow-hidden transition-colors",
-        isDark ? "bg-neutral-900" : "bg-white"
+        !hydrated ? "bg-background" : isDark ? "bg-neutral-900" : "bg-white",
       )}
     >
       <ChatWithComposer
@@ -211,9 +209,8 @@ function FramedPreview() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const theme = useWorkbenchStore((s) => s.previewTheme);
-  const mounted = useHydratedOnce();
-
-  const isDark = mounted && theme === "dark";
+  const hydrated = useHydratedOnce();
+  const isDark = hydrated && theme === "dark";
 
   useEffect(() => {
     const container = containerRef.current;
@@ -237,17 +234,17 @@ function FramedPreview() {
   return (
     <div
       ref={containerRef}
-      data-theme={mounted ? theme : "light"}
+      data-theme={theme}
       className={cn(
         "h-full w-full overflow-hidden transition-colors",
-        isDark ? "bg-neutral-900" : "bg-white"
+        !hydrated ? "bg-background" : isDark ? "bg-neutral-900" : "bg-white",
       )}
     >
       {showFrame ? (
         <div
           className={cn(
             "flex h-full w-full items-center justify-center overflow-hidden bg-dot-grid p-4 transition-colors",
-            isDark ? "bg-neutral-900" : "bg-neutral-100"
+            !hydrated ? "bg-background" : isDark ? "bg-neutral-900" : "bg-neutral-100",
           )}
         >
           <DeviceFrame
