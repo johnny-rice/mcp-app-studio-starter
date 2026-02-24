@@ -203,7 +203,7 @@ export function ChatThread({ children, className }: ChatThreadProps) {
     // Isolated
     morphWrapperClasses = cn(
       "relative z-10 flex h-full w-full flex-col overflow-hidden transition-colors",
-      isDesktopDevice ? "items-center" : "items-center justify-center px-4"
+      isDesktopDevice ? "items-center justify-center" : "items-center justify-center px-4"
     );
     morphContainerClasses = cn(
       "overflow-hidden transition-colors",
