@@ -71,7 +71,7 @@ export function getLayoutConfig({
         contentStackClassName:
           "mx-auto flex flex-col w-full max-w-[770px] gap-3 pt-3 p-4 pb-24",
         morphWrapperClassName:
-          "sticky top-3 z-10 flex justify-center w-full px-3 pointer-events-none",
+          "sticky top-3 z-10 flex justify-center w-full pointer-events-none",
         morphContainerClassName: cn(
           "pointer-events-auto w-full max-w-[770px] overflow-hidden rounded-2xl border shadow-lg transition-colors",
           cardTone,
@@ -105,8 +105,8 @@ export function getLayoutConfig({
         scrollContainerClassName: "h-full w-full relative overflow-hidden",
         contentStackClassName: "mx-auto flex flex-col w-full h-full max-w-[770px]",
         morphWrapperClassName: cn(
-          "relative z-10 flex h-full w-full flex-col overflow-hidden transition-colors items-center justify-center",
-          !isDesktopDevice && "px-4",
+          "relative z-10 px-4 flex h-full w-full flex-col overflow-hidden transition-colors items-center justify-center",
+
         ),
         morphContainerClassName: cn(
           "w-full max-w-[770px] overflow-hidden rounded-2xl border shadow-sm transition-colors",

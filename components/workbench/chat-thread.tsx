@@ -1,7 +1,8 @@
 "use client";
 
 import { MapPin, MessageCircle } from "lucide-react";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
+import { useHydratedOnce } from "@/hooks/use-hydrated-once";
 import { cn } from "@/lib/ui/cn";
 import { workbenchComponents } from "@/lib/workbench/component-registry";
 import type { ConversationContext } from "@/lib/workbench/mock-config";
@@ -138,8 +139,7 @@ export function ChatThread({ children, className }: ChatThreadProps) {
   const selectedComponent = useSelectedComponent();
   const mockConfig = useWorkbenchStore((s) => s.mockConfig);
 
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  const mounted = useHydratedOnce();
   const effectiveIsDark = mounted && theme === "dark";
   const scrollRef = useRef<HTMLDivElement>(null);
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useHydratedOnce } from "@/hooks/use-hydrated-once";
 import {
   type ImperativePanelGroupHandle,
   Panel,
@@ -86,11 +87,7 @@ function ResizablePreview() {
   const resizableWidth = useResizableWidth();
   const setResizableWidth = useWorkbenchStore((s) => s.setResizableWidth);
   const theme = useWorkbenchStore((s) => s.previewTheme);
-  const [mounted, setMounted] = useState(false);
-  
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useHydratedOnce();
 
   const isDark = mounted && theme === "dark";
   const panelGroupRef = useRef<ImperativePanelGroupHandle | null>(null);
@@ -189,11 +186,7 @@ function ResizablePreview() {
 function DesktopPreview() {
   const displayMode = useDisplayMode();
   const theme = useWorkbenchStore((s) => s.previewTheme);
-  const [mounted, setMounted] = useState(false);
-  
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useHydratedOnce();
 
   const isDark = mounted && theme === "dark";
 
@@ -218,11 +211,7 @@ function FramedPreview() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const theme = useWorkbenchStore((s) => s.previewTheme);
-  const [mounted, setMounted] = useState(false);
-  
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useHydratedOnce();
 
   const isDark = mounted && theme === "dark";
 
