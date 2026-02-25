@@ -56,8 +56,8 @@ export function useWorkbenchPersistence() {
     if (urlState.component) store.setSelectedComponent(initialComponentId);
     if (urlState.mode) store.setDisplayMode(urlState.mode);
     if (urlState.device) store.setDeviceType(urlState.device);
+    // URL theme is for shell/theme chrome only; previewTheme remains independent.
     if (urlState.theme) store.setTheme(urlState.theme);
-    if (urlState.theme) store.setPreviewTheme(urlState.theme);
     isUpdatingFromUrl.current = false;
 
     // Initialize toolInput with component's defaultProps if empty

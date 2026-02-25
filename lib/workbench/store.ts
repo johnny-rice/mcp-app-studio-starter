@@ -51,7 +51,9 @@ interface WorkbenchState {
   selectedComponent: string;
   displayMode: DisplayMode;
   previousDisplayMode: DisplayMode;
+  // Global shell/chrome theme (header, side panels, surrounding app UI).
   theme: Theme;
+  // Preview/runtime theme for widget simulation; intentionally independent.
   previewTheme: Theme;
   locale: string;
   deviceType: DeviceType;
@@ -266,7 +268,8 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
       isTransitioning: transitioning,
       transitionFrom: transitioning ? state.displayMode : null,
     })),
-  setTheme: (theme) => set(() => ({ theme, previewTheme: theme })),
+  // Intentionally does not mutate previewTheme.
+  setTheme: (theme) => set(() => ({ theme })),
   setPreviewTheme: (theme) => set(() => ({ previewTheme: theme })),
   setLocale: (locale) => set(() => ({ locale })),
   setDeviceType: (type) =>

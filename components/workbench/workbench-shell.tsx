@@ -43,7 +43,6 @@ export function WorkbenchShell() {
   const isSDKGuideOpen = useIsSDKGuideOpen();
   const setSDKGuideOpen = useWorkbenchStore((s) => s.setSDKGuideOpen);
   const setWorkbenchTheme = useWorkbenchStore((s) => s.setTheme);
-  const setPreviewTheme = useWorkbenchStore((s) => s.setPreviewTheme);
   const { setTheme, resolvedTheme } = useTheme();
   const selectedComponentId = useSelectedComponent();
   const activeComponent = getComponent(selectedComponentId);
@@ -58,9 +57,8 @@ export function WorkbenchShell() {
     if (mounted && resolvedTheme) {
       const nextTheme = resolvedTheme as "light" | "dark";
       setWorkbenchTheme(nextTheme);
-      setPreviewTheme(nextTheme);
     }
-  }, [mounted, resolvedTheme, setWorkbenchTheme, setPreviewTheme]);
+  }, [mounted, resolvedTheme, setWorkbenchTheme]);
 
   const isDark = mounted && resolvedTheme === "dark";
 

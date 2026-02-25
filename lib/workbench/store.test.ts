@@ -15,7 +15,7 @@ describe("Workbench Store", () => {
     it("should return correct theme", () => {
       const store = useWorkbenchStore.getState();
 
-      store.setTheme("dark");
+      store.setPreviewTheme("dark");
       const globals = store.getOpenAIGlobals();
 
       assert.strictEqual(globals.theme, "dark");
@@ -135,6 +135,17 @@ describe("Workbench Store", () => {
       assert.strictEqual(globals.userAgent.capabilities.hover, true);
       assert.strictEqual(globals.userAgent.capabilities.touch, false);
     });
+
+    it("setTheme should not overwrite previewTheme", () => {
+      const store = useWorkbenchStore.getState();
+
+      store.setPreviewTheme("light");
+      store.setTheme("dark");
+
+      const state = useWorkbenchStore.getState();
+      assert.strictEqual(state.theme, "dark");
+      assert.strictEqual(state.previewTheme, "light");
+    });
   });
 
   describe("setDeviceType", () => {
@@ -178,6 +189,7 @@ describe("Workbench Store", () => {
 
       // Set various state values
       store.setTheme("dark");
+      store.setPreviewTheme("dark");
       store.setLocale("fr-FR");
       store.setDisplayMode("pip");
       store.setDeviceType("tablet");

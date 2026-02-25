@@ -20,6 +20,21 @@ Use the shared framework-agnostic contract:
 
 Reference: `lib/workbench/THEMING_CONTRACT.md`
 
+## Theme State Separation (Agent-Critical)
+
+The workbench intentionally has two separate theme states:
+
+- `theme`: global shell/chrome theme (header, panels, surrounding app UI)
+- `previewTheme`: widget preview theme (iframe/runtime simulation)
+
+Do not auto-sync these states. This separation is intentional for debugging and
+cross-host simulation.
+
+- `setTheme(...)` must not mutate `previewTheme`.
+- URL `theme` hydration should update only `theme`.
+- `previewTheme` is controlled independently (preview controls + persisted
+  preferences).
+
 ## Why You Might See `openai/*` References
 
 There are two kinds of "OpenAI/ChatGPT" references you may see in workbench code:

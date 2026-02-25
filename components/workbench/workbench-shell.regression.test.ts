@@ -16,7 +16,7 @@ describe("Workbench shell regression coverage", () => {
     assert.doesNotMatch(source, /aria-label="Toggle theme"/);
   });
 
-  it("syncs resolved global theme into preview theme to avoid opposite-theme preview drift", () => {
+  it("keeps resolved global theme sync scoped to workbench theme only", () => {
     const source = fs.readFileSync(TARGET_FILE, "utf8");
 
     assert.match(
@@ -24,6 +24,6 @@ describe("Workbench shell regression coverage", () => {
       /const nextTheme = resolvedTheme as "light" \| "dark";/,
     );
     assert.match(source, /setWorkbenchTheme\(nextTheme\);/);
-    assert.match(source, /setPreviewTheme\(nextTheme\);/);
+    assert.doesNotMatch(source, /setPreviewTheme\(nextTheme\);/);
   });
 });

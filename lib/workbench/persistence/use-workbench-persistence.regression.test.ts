@@ -22,14 +22,14 @@ describe("workbench persistence default-props regression", () => {
     );
   });
 
-  it("applies URL theme to both global and preview theme state", () => {
+  it("applies URL theme only to global theme state", () => {
     const source = fs.readFileSync(TARGET_FILE, "utf8");
 
     assert.match(
       source,
       /if \(urlState\.theme\) store\.setTheme\(urlState\.theme\);/,
     );
-    assert.match(
+    assert.doesNotMatch(
       source,
       /if \(urlState\.theme\) store\.setPreviewTheme\(urlState\.theme\);/,
     );
