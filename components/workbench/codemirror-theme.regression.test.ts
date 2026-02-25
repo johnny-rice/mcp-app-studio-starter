@@ -17,34 +17,66 @@ function read(filePath: string): string {
 }
 
 describe("CodeMirror theme safety regression", () => {
-  it("avoids github theme objects that can crash with 'tags is not iterable'", () => {
+  it("avoids bundled theme extensions that include editor + highlighting together (githubDark/Light)", () => {
     const jsonEditorSource = read(JSON_EDITOR_FILE);
     const mockVariantEditorSource = read(MOCK_VARIANT_EDITOR_FILE);
 
+    // githubDark/Light are full extensions (editor theme + highlighting).
+    // They must not be used as the theme prop value.
     assert.doesNotMatch(jsonEditorSource, /githubDark|githubLight/);
     assert.doesNotMatch(mockVariantEditorSource, /githubDark|githubLight/);
   });
 
-  it("uses string theme selection for workbench editors", () => {
+  it('uses theme="none" to prevent react-codemirror from injecting oneDark/defaultLight', () => {
+    // theme="dark" causes @uiw/react-codemirror to push the full oneDark
+    // extension (editor theme + syntaxHighlighting combined). theme="none"
+    // avoids this and lets us control highlighting separately.
     const jsonEditorSource = read(JSON_EDITOR_FILE);
     const mockVariantEditorSource = read(MOCK_VARIANT_EDITOR_FILE);
 
-    assert.match(jsonEditorSource, /theme=\{isDark \? "dark" : "light"\}/);
-    assert.match(
+    assert.match(jsonEditorSource, /theme="none"/);
+    assert.doesNotMatch(
+      jsonEditorSource,
+      /theme=\{isDark \? "dark" : "light"\}/,
+    );
+
+    assert.doesNotMatch(
       mockVariantEditorSource,
       /theme=\{isDark \? "dark" : "light"\}/,
     );
+    const noneCount = (mockVariantEditorSource.match(/theme="none"/g) ?? [])
+      .length;
+    const codeMirrorCount = (
+      mockVariantEditorSource.match(/<CodeMirror/g) ?? []
+    ).length;
+    assert.equal(
+      noneCount,
+      codeMirrorCount,
+      `Expected ${codeMirrorCount} theme="none" but found ${noneCount}`,
+    );
   });
 
-  it("disables syntax highlighting in workbench CodeMirror instances to avoid tag-style crashes", () => {
+  it("imports only oneDarkHighlightStyle (not the full oneDark extension) for dark mode", () => {
+    // oneDarkHighlightStyle is just syntax colors. oneDark bundles the
+    // editor theme + highlighting and causes the crash when injected via
+    // the theme prop. We import only the highlight style.
     const jsonEditorSource = read(JSON_EDITOR_FILE);
     const mockVariantEditorSource = read(MOCK_VARIANT_EDITOR_FILE);
 
-    assert.match(jsonEditorSource, /syntaxHighlighting:\s*false/);
-    assert.equal(
-      (mockVariantEditorSource.match(/syntaxHighlighting:\s*false/g) ?? [])
-        .length,
-      2,
+    assert.match(jsonEditorSource, /oneDarkHighlightStyle/);
+    assert.match(mockVariantEditorSource, /oneDarkHighlightStyle/);
+    assert.doesNotMatch(jsonEditorSource, /\boneDark\b(?!HighlightStyle)/);
+    assert.doesNotMatch(
+      mockVariantEditorSource,
+      /\boneDark\b(?!HighlightStyle)/,
     );
+  });
+
+  it("provides dark mode via custom EditorView.theme extensions (not the theme prop)", () => {
+    const jsonEditorSource = read(JSON_EDITOR_FILE);
+
+    assert.match(jsonEditorSource, /EditorView\.theme\(/);
+    assert.match(jsonEditorSource, /dark:\s*true/);
+    assert.match(jsonEditorSource, /dark:\s*false/);
   });
 });

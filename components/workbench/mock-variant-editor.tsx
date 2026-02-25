@@ -1,7 +1,9 @@
 "use client";
 
 import { json, jsonParseLinter } from "@codemirror/lang-json";
+import { syntaxHighlighting } from "@codemirror/language";
 import { type Diagnostic, linter, lintGutter } from "@codemirror/lint";
+import { oneDarkHighlightStyle } from "@codemirror/theme-one-dark";
 import { EditorView, tooltips } from "@codemirror/view";
 import CodeMirror from "@uiw/react-codemirror";
 import { useTheme } from "next-themes";
@@ -113,8 +115,14 @@ function MockVariantEditorInner({
       tooltips({ position: "fixed" }),
       EditorView.lineWrapping,
       compactEditorStyle,
+      ...(isDark
+        ? [
+            EditorView.theme({}, { dark: true }),
+            syntaxHighlighting(oneDarkHighlightStyle),
+          ]
+        : []),
     ],
-    [],
+    [isDark],
   );
 
   const handleResponseChange = (text: string) => {
@@ -202,13 +210,12 @@ function MockVariantEditorInner({
               height="120px"
               extensions={extensions}
               onChange={handleResponseChange}
-              theme={isDark ? "dark" : "light"}
+              theme="none"
               basicSetup={{
                 lineNumbers: false,
                 foldGutter: false,
                 highlightActiveLineGutter: false,
                 highlightActiveLine: false,
-                syntaxHighlighting: false,
               }}
               className={cn(
                 "[&_.cm-editor]:bg-transparent!",
@@ -262,8 +269,14 @@ export function InlineMockVariantEditor({
       tooltips({ position: "fixed" }),
       EditorView.lineWrapping,
       compactEditorStyle,
+      ...(isDark
+        ? [
+            EditorView.theme({}, { dark: true }),
+            syntaxHighlighting(oneDarkHighlightStyle),
+          ]
+        : []),
     ],
-    [],
+    [isDark],
   );
 
   const handleResponseChange = (text: string) => {
@@ -293,7 +306,7 @@ export function InlineMockVariantEditor({
         height="180px"
         extensions={extensions}
         onChange={handleResponseChange}
-        theme={isDark ? "dark" : "light"}
+        theme="none"
         editable={!disabled}
         basicSetup={{
           lineNumbers: false,

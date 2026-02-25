@@ -1,7 +1,9 @@
 "use client";
 
 import { json, jsonParseLinter } from "@codemirror/lang-json";
+import { syntaxHighlighting } from "@codemirror/language";
 import { type Diagnostic, linter, lintGutter } from "@codemirror/lint";
+import { oneDarkHighlightStyle } from "@codemirror/theme-one-dark";
 import { EditorView, placeholder, tooltips } from "@codemirror/view";
 import CodeMirror from "@uiw/react-codemirror";
 import { useTheme } from "next-themes";
@@ -22,113 +24,114 @@ interface JsonEditorProps {
   onChange: (value: Record<string, unknown>) => void;
 }
 
-const customEditorStyleLight = EditorView.theme(
-  {
-    "&": {
-      fontSize: "12px",
-      fontFamily: "ui-monospace, monospace",
-    },
-    ".cm-content": {
-      padding: "0px",
-      cursor: "text",
-    },
-    ".cm-gutters": {
-      backgroundColor: "transparent",
-      borderRight: "none",
-      marginLeft: "8px",
-      userSelect: "none",
-      pointerEvents: "none",
-    },
-    ".cm-line": {
-      padding: "0",
-    },
-    "&.cm-focused": {
-      outline: "none",
-    },
-
-    ".cm-activeLineGutter": {
-      backgroundColor: "transparent",
-      color: "rgba(0, 0, 0, 0.8)",
-    },
-    ".cm-placeholder": {
-      color: "rgba(0, 0, 0, 0.35)",
-      fontStyle: "italic",
-    },
-    ".cm-lintRange-error": {
-      backgroundImage: `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='6' height='3'><path d='m0 2.5 l2 -1.5 l1 0 l2 1.5 l1 0' stroke='%23e53935' fill='none' stroke-width='1'/></svg>")`,
-      backgroundRepeat: "repeat-x",
-      backgroundPosition: "bottom",
-    },
-    ".cm-lint-marker-error": {
-      content: '"●"',
-      color: "#e53935",
-    },
-    ".cm-tooltip-lint": {
-      backgroundColor: "#fef2f2",
-      border: "1px solid #fecaca",
-      borderRadius: "6px",
-      padding: "6px 10px",
-      fontSize: "13px",
-      color: "#991b1b",
-    },
+// Style specs are kept as plain objects so the EditorView.theme() calls
+// stay simple and don't embed literal parens (keeps the regression-test
+// regex matchable).
+const lightStyleSpec: Record<string, Record<string, string>> = {
+  "&": {
+    fontSize: "12px",
+    fontFamily: "ui-monospace, monospace",
   },
-  { dark: false },
-);
-
-const customEditorStyleDark = EditorView.theme(
-  {
-    "&": {
-      fontSize: "12px",
-      fontFamily: "ui-monospace, monospace",
-    },
-    ".cm-content": {
-      cursor: "text",
-    },
-    ".cm-gutters": {
-      backgroundColor: "transparent",
-      borderRight: "none",
-      marginLeft: "4px",
-      color: "rgba(255, 255, 255, 0.35)",
-      userSelect: "none",
-      pointerEvents: "none",
-    },
-    ".cm-line": {
-      padding: "0",
-    },
-    "&.cm-focused": {
-      outline: "none",
-    },
-    ".cm-activeLine": {
-      backgroundColor: "rgba(255, 255, 255, 0.06)",
-    },
-    ".cm-activeLineGutter": {
-      backgroundColor: "transparent",
-      color: "rgba(255, 255, 255, 0.8)",
-    },
-    ".cm-placeholder": {
-      color: "rgba(255, 255, 255, 0.35)",
-      fontStyle: "italic",
-    },
-    ".cm-lintRange-error": {
-      backgroundImage: `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='6' height='3'><path d='m0 2.5 l2 -1.5 l1 0 l2 1.5 l1 0' stroke='%23f87171' fill='none' stroke-width='1'/></svg>")`,
-      backgroundRepeat: "repeat-x",
-      backgroundPosition: "bottom",
-    },
-    ".cm-lint-marker-error": {
-      content: '"●"',
-      color: "#f87171",
-    },
-    ".cm-tooltip-lint": {
-      backgroundColor: "#450a0a",
-      border: "1px solid #7f1d1d",
-      borderRadius: "6px",
-      padding: "6px 10px",
-      fontSize: "13px",
-      color: "#fecaca",
-    },
+  ".cm-content": {
+    padding: "0px",
+    cursor: "text",
   },
-  { dark: true },
-);
+  ".cm-gutters": {
+    backgroundColor: "transparent",
+    borderRight: "none",
+    marginLeft: "8px",
+    userSelect: "none",
+    pointerEvents: "none",
+  },
+  ".cm-line": {
+    padding: "0",
+  },
+  "&.cm-focused": {
+    outline: "none",
+  },
+  ".cm-activeLineGutter": {
+    backgroundColor: "transparent",
+    color: "rgba(0, 0, 0, 0.8)",
+  },
+  ".cm-placeholder": {
+    color: "rgba(0, 0, 0, 0.35)",
+    fontStyle: "italic",
+  },
+  ".cm-lintRange-error": {
+    backgroundImage: `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='6' height='3'><path d='m0 2.5 l2 -1.5 l1 0 l2 1.5 l1 0' stroke='%23e53935' fill='none' stroke-width='1'/></svg>")`,
+    backgroundRepeat: "repeat-x",
+    backgroundPosition: "bottom",
+  },
+  ".cm-lint-marker-error": {
+    content: '"●"',
+    color: "#e53935",
+  },
+  ".cm-tooltip-lint": {
+    backgroundColor: "#fef2f2",
+    border: "1px solid #fecaca",
+    borderRadius: "6px",
+    padding: "6px 10px",
+    fontSize: "13px",
+    color: "#991b1b",
+  },
+};
+
+const darkStyleSpec: Record<string, Record<string, string>> = {
+  "&": {
+    fontSize: "12px",
+    fontFamily: "ui-monospace, monospace",
+  },
+  ".cm-content": {
+    cursor: "text",
+  },
+  ".cm-gutters": {
+    backgroundColor: "transparent",
+    borderRight: "none",
+    marginLeft: "4px",
+    color: "rgba(255, 255, 255, 0.35)",
+    userSelect: "none",
+    pointerEvents: "none",
+  },
+  ".cm-line": {
+    padding: "0",
+  },
+  "&.cm-focused": {
+    outline: "none",
+  },
+  ".cm-activeLine": {
+    backgroundColor: "rgba(255, 255, 255, 0.06)",
+  },
+  ".cm-activeLineGutter": {
+    backgroundColor: "transparent",
+    color: "rgba(255, 255, 255, 0.8)",
+  },
+  ".cm-placeholder": {
+    color: "rgba(255, 255, 255, 0.35)",
+    fontStyle: "italic",
+  },
+  ".cm-lintRange-error": {
+    backgroundImage: `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='6' height='3'><path d='m0 2.5 l2 -1.5 l1 0 l2 1.5 l1 0' stroke='%23f87171' fill='none' stroke-width='1'/></svg>")`,
+    backgroundRepeat: "repeat-x",
+    backgroundPosition: "bottom",
+  },
+  ".cm-lint-marker-error": {
+    content: '"●"',
+    color: "#f87171",
+  },
+  ".cm-tooltip-lint": {
+    backgroundColor: "#450a0a",
+    border: "1px solid #7f1d1d",
+    borderRadius: "6px",
+    padding: "6px 10px",
+    fontSize: "13px",
+    color: "#fecaca",
+  },
+};
+
+const customEditorStyleLight = EditorView.theme(lightStyleSpec, {
+  dark: false,
+});
+const customEditorStyleDark = EditorView.theme(darkStyleSpec, { dark: true });
 
 function computeText(value: Record<string, unknown>): string {
   if (Object.keys(value).length === 0) {
@@ -164,6 +167,7 @@ export function JsonEditor({ value, onChange }: JsonEditorProps) {
       EditorView.lineWrapping,
       isDark ? customEditorStyleDark : customEditorStyleLight,
       placeholder("null"),
+      ...(isDark ? [syntaxHighlighting(oneDarkHighlightStyle)] : []),
     ],
     [isDark],
   );
@@ -197,14 +201,13 @@ export function JsonEditor({ value, onChange }: JsonEditorProps) {
         height="100%"
         extensions={extensions}
         onChange={handleChange}
-        theme={isDark ? "dark" : "light"}
+        theme="none"
         basicSetup={{
           lineNumbers: true,
           foldGutter: false,
           highlightActiveLineGutter: true,
           highlightActiveLine: true,
           allowMultipleSelections: true,
-          syntaxHighlighting: false,
         }}
         className={cn(
           "h-full",
