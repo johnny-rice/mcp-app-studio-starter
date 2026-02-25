@@ -1,15 +1,28 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { afterEach, describe, it } from "node:test";
 import {
   buildBundleCacheKey,
   buildBundleRequestPath,
   buildHmrPreviewPath,
 } from "./use-widget-bundle";
 
+const originalNodeEnv = process.env.NODE_ENV;
+
+afterEach(() => {
+  (process.env as Record<string, string | undefined>).NODE_ENV =
+    originalNodeEnv;
+});
+
 describe("buildBundleRequestPath", () => {
   it("includes component id", () => {
     const path = buildBundleRequestPath("poi-map", "");
     assert.equal(path, "/api/workbench/bundle?id=poi-map");
+  });
+
+  it("uses static bundle in production when demo query is absent", () => {
+    (process.env as Record<string, string | undefined>).NODE_ENV = "production";
+    const path = buildBundleRequestPath("poi-map", "");
+    assert.equal(path, "/workbench-bundles/poi-map.js");
   });
 
   it("uses static demo bundle when demo=true is present", () => {
@@ -32,6 +45,12 @@ describe("buildBundleCacheKey", () => {
     const devKey = buildBundleCacheKey("poi-map", "");
 
     assert.notEqual(demoKey, devKey);
+  });
+
+  it("uses demo cache namespace in production", () => {
+    (process.env as Record<string, string | undefined>).NODE_ENV = "production";
+    const key = buildBundleCacheKey("poi-map", "");
+    assert.equal(key, "poi-map::demo");
   });
 });
 

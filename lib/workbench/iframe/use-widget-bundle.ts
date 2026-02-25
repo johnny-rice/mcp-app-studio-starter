@@ -20,12 +20,19 @@ function isDemoBundleRequest(currentLocationSearch: string): boolean {
   return currentParams.get("demo") === "true";
 }
 
+function shouldUseStaticBundle(currentLocationSearch: string): boolean {
+  return (
+    isDemoBundleRequest(currentLocationSearch) ||
+    process.env.NODE_ENV === "production"
+  );
+}
+
 export function buildBundleCacheKey(
   componentId: string,
   currentLocationSearch: string,
 ): string {
   return `${encodeURIComponent(componentId)}::${
-    isDemoBundleRequest(currentLocationSearch) ? "demo" : "runtime"
+    shouldUseStaticBundle(currentLocationSearch) ? "demo" : "runtime"
   }`;
 }
 
@@ -33,9 +40,7 @@ export function buildBundleRequestPath(
   componentId: string,
   currentLocationSearch: string,
 ): string {
-  const isDemoMode = isDemoBundleRequest(currentLocationSearch);
-
-  if (isDemoMode) {
+  if (shouldUseStaticBundle(currentLocationSearch)) {
     return `/workbench-bundles/${encodeURIComponent(componentId)}.js`;
   }
 
@@ -116,7 +121,11 @@ export function useWidgetBundle(
           signal: controller.signal,
         });
 
-        if (!response.ok && requestPath.startsWith("/workbench-bundles/")) {
+        if (
+          !response.ok &&
+          requestPath.startsWith("/workbench-bundles/") &&
+          process.env.NODE_ENV === "development"
+        ) {
           response = await fetch(buildDevFallbackBundlePath(componentId), {
             signal: controller.signal,
           });
