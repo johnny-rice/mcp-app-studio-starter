@@ -3,7 +3,6 @@
 import { json, jsonParseLinter } from "@codemirror/lang-json";
 import { type Diagnostic, linter, lintGutter } from "@codemirror/lint";
 import { EditorView, placeholder, tooltips } from "@codemirror/view";
-import { githubDark, githubLight } from "@uiw/codemirror-theme-github";
 import CodeMirror from "@uiw/react-codemirror";
 import { useTheme } from "next-themes";
 import { useEffect, useMemo, useState } from "react";
@@ -198,13 +197,14 @@ export function JsonEditor({ value, onChange }: JsonEditorProps) {
         height="100%"
         extensions={extensions}
         onChange={handleChange}
-        theme={isDark ? githubDark : githubLight}
+        theme={isDark ? "dark" : "light"}
         basicSetup={{
           lineNumbers: true,
           foldGutter: false,
           highlightActiveLineGutter: true,
           highlightActiveLine: true,
           allowMultipleSelections: true,
+          syntaxHighlighting: false,
         }}
         className={cn(
           "h-full",
