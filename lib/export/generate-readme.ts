@@ -70,6 +70,30 @@ Before submitting your app, verify:
 This export is MCP-first. Prefer standard MCP Apps \`ui/*\` capabilities for core
 behavior and treat \`window.openai\` APIs as optional ChatGPT extensions.
 
+### Metadata migration notes
+
+- Treat \`_meta.ui.visibility\` as the source of truth.
+- Set \`_meta.ui.resourceUri\` directly (legacy \`openai/outputTemplate\` is not supported).
+- Set \`_meta.ui.visibility\` directly when you need non-default visibility.
+- Resource contents use the MCP Apps MIME profile \`text/html;profile=mcp-app\`.
+
+### CSP configuration (MCP-standard)
+
+Use MCP-standard CSP keys in \`_meta.ui.csp\`:
+
+~~~ts
+_meta: {
+  ui: {
+    csp: {
+      connectDomains: ["https://api.example.com"],
+      resourceDomains: ["https://cdn.example.com"],
+      frameDomains: ["https://www.youtube.com"],
+      baseUriDomains: ["https://cdn.example.com"],
+    },
+  },
+}
+~~~
+
 If you use \`window.openai.requestModal\`, always feature-detect and provide a fallback:
 
 ~~~ts
@@ -79,6 +103,10 @@ if (typeof window !== "undefined" && window.openai?.requestModal) {
   // Fallback: local modal state or route navigation
 }
 ~~~
+
+Checkout note:
+- \`window.openai.requestCheckout\` is currently a ChatGPT private beta extension.
+- Always provide a non-ChatGPT fallback (for example, external checkout).
 
 ## Troubleshooting
 

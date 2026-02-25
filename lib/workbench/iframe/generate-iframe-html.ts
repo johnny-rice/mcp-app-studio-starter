@@ -163,6 +163,12 @@ const BRIDGE_SCRIPT = `
     getFileDownloadUrl: function(args) {
       return callMethod("getFileDownloadUrl", [args]);
     },
+    setOpenInAppUrl: function(args) {
+      callMethod("setOpenInAppUrl", [args]);
+    },
+    requestCheckout: function(request) {
+      return callMethod("requestCheckout", [request]);
+    },
   };
 
   Object.defineProperty(window, "openai", {

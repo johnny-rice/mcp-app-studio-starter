@@ -10,6 +10,7 @@ export interface UrlState {
   mode: DisplayMode;
   device: DeviceType;
   theme: Theme;
+  component: string;
 }
 
 export interface LocalStoragePreferences {
@@ -20,7 +21,6 @@ export interface LocalStoragePreferences {
   collapsedSections: Record<string, boolean>;
   isLeftPanelOpen: boolean;
   isRightPanelOpen: boolean;
-  useHmrPreview: boolean;
 }
 
 export interface SessionStorageState {

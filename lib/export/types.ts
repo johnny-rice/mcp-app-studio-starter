@@ -1,5 +1,3 @@
-import type { DisplayMode, Theme } from "../workbench/types";
-
 export interface ExportConfig {
   widget: WidgetConfig;
   output: OutputConfig;
@@ -48,13 +46,6 @@ export interface ExportedFile {
   path: string;
   relativePath: string;
   size: number;
-}
-
-export interface BridgeConfig {
-  theme?: Theme;
-  locale?: string;
-  displayMode?: DisplayMode;
-  toolInput?: Record<string, unknown>;
 }
 
 export interface ChatGPTAppManifest {

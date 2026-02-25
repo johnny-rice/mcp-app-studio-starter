@@ -29,13 +29,12 @@ export interface ToolAnnotations {
 }
 
 export interface ToolDescriptorMeta {
-  ui?: { resourceUri?: string };
-  /**
-   * @deprecated Legacy ChatGPT Apps SDK key. Prefer `ui.resourceUri`.
-   */
-  "openai/outputTemplate"?: string;
-  "openai/widgetAccessible"?: boolean;
-  "openai/visibility"?: "public" | "private";
+  ui?: {
+    resourceUri?: string;
+    /** MCP-standard visibility array. Determines who can see/invoke the tool. */
+    visibility?: Array<"model" | "app">;
+  };
+  /** Optional ChatGPT status strings shown while a tool is running/finished. */
   "openai/toolInvocation/invoking"?: string;
   "openai/toolInvocation/invoked"?: string;
   "openai/fileParams"?: string[];

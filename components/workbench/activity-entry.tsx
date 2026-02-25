@@ -9,9 +9,11 @@ import {
   Database,
   ExternalLink,
   FileIcon,
+  Link2,
   Loader2,
   MessageSquare,
   PanelTop,
+  ShoppingCart,
   Wrench,
 } from "lucide-react";
 import type { ConsoleEntry, ConsoleEntryType } from "@/lib/workbench/types";
@@ -61,6 +63,14 @@ const ENTRY_CONFIG: Record<
   getFileDownloadUrl: {
     icon: FileIcon,
     color: "text-amber-600 dark:text-amber-400",
+  },
+  setOpenInAppUrl: {
+    icon: Link2,
+    color: "text-cyan-600 dark:text-cyan-400",
+  },
+  requestCheckout: {
+    icon: ShoppingCart,
+    color: "text-rose-600 dark:text-rose-400",
   },
   event: {
     icon: Activity,

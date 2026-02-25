@@ -3,7 +3,6 @@
 import { json, jsonParseLinter } from "@codemirror/lang-json";
 import { type Diagnostic, linter, lintGutter } from "@codemirror/lint";
 import { EditorView, tooltips } from "@codemirror/view";
-import { githubDark, githubLight } from "@uiw/codemirror-theme-github";
 import CodeMirror from "@uiw/react-codemirror";
 import { useTheme } from "next-themes";
 import { useEffect, useMemo, useState } from "react";
@@ -203,12 +202,13 @@ function MockVariantEditorInner({
               height="120px"
               extensions={extensions}
               onChange={handleResponseChange}
-              theme={isDark ? githubDark : githubLight}
+              theme={isDark ? "dark" : "light"}
               basicSetup={{
                 lineNumbers: false,
                 foldGutter: false,
                 highlightActiveLineGutter: false,
                 highlightActiveLine: false,
+                syntaxHighlighting: false,
               }}
               className={cn(
                 "[&_.cm-editor]:bg-transparent!",
@@ -293,13 +293,14 @@ export function InlineMockVariantEditor({
         height="180px"
         extensions={extensions}
         onChange={handleResponseChange}
-        theme={isDark ? githubDark : githubLight}
+        theme={isDark ? "dark" : "light"}
         editable={!disabled}
         basicSetup={{
           lineNumbers: false,
           foldGutter: false,
           highlightActiveLineGutter: false,
           highlightActiveLine: false,
+          syntaxHighlighting: false,
         }}
         className={cn(
           "[&_.cm-editor]:bg-transparent!",

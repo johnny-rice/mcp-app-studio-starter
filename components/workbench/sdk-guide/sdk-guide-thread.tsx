@@ -163,7 +163,7 @@ const SDKGuideComposer: FC = () => {
               <TooltipIconButton
                 tooltip="Send message"
                 side="top"
-                type="submit"
+                type="button"
                 variant="default"
                 size="icon"
                 className="size-7 rounded-full"

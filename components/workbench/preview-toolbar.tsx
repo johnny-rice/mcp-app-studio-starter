@@ -18,7 +18,6 @@ import {
   Sun,
   Tablet,
   X,
-  Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
@@ -48,7 +47,6 @@ import {
   useConversationMode,
   useDeviceType,
   useDisplayMode,
-  useHmrPreview as useIsHmrPreviewEnabled,
   useSelectedComponent,
   useWorkbenchStore,
   useWorkbenchTheme,
@@ -223,6 +221,7 @@ function AdvancedSettingsPopover() {
             <Button
               variant="ghost"
               size="icon"
+              aria-label="More options"
               className="size-7 text-muted-foreground hover:text-foreground"
             >
               <MoreHorizontal className="size-4" />
@@ -244,6 +243,7 @@ function AdvancedSettingsPopover() {
               <Button
                 variant="ghost"
                 size="sm"
+                aria-label="Dismiss active view"
                 className="size-6 p-0 text-muted-foreground hover:text-foreground"
                 onClick={() => setView(null)}
                 title="Dismiss view"
@@ -341,6 +341,7 @@ function AdvancedSettingsPopover() {
               <Button
                 variant="ghost"
                 size="sm"
+                aria-label="Clear location"
                 className="size-6 p-0 text-muted-foreground hover:text-foreground"
                 onClick={() => setUserLocation(null)}
                 title="Clear location"
@@ -361,7 +362,6 @@ export function PreviewToolbar() {
   const [mounted, setMounted] = useState(false);
   const deviceType = useDeviceType();
   const conversationMode = useConversationMode();
-  const isHmrPreviewEnabled = useIsHmrPreviewEnabled();
   const selectedComponent = useSelectedComponent();
   const [themeDiagnostics, setThemeDiagnostics] =
     useState<ThemeDiagnosticsResponse>({
@@ -376,14 +376,16 @@ export function PreviewToolbar() {
     setDeviceType,
     setPreviewTheme: setWorkbenchTheme,
     setConversationMode,
-    setUseHmrPreview,
+    hmrRuntimeStatus,
+    hmrRuntimeMessage,
   } = useWorkbenchStore(
     useShallow((s) => ({
       setDisplayMode: s.setDisplayMode,
       setDeviceType: s.setDeviceType,
       setPreviewTheme: s.setPreviewTheme,
       setConversationMode: s.setConversationMode,
-      setUseHmrPreview: s.setUseHmrPreview,
+      hmrRuntimeStatus: s.hmrRuntimeStatus,
+      hmrRuntimeMessage: s.hmrRuntimeMessage,
     })),
   );
 
@@ -441,6 +443,7 @@ export function PreviewToolbar() {
                     <Button
                       variant="ghost"
                       size="sm"
+                      aria-label={label}
                       className={cn(
                         "size-7 p-0",
                         deviceType === id
@@ -469,6 +472,7 @@ export function PreviewToolbar() {
                     <Button
                       variant="ghost"
                       size="sm"
+                      aria-label={label}
                       className={cn(
                         "size-7 p-0",
                         displayMode === id
@@ -493,6 +497,7 @@ export function PreviewToolbar() {
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label="Conversation Mode"
                 disabled={displayMode !== "inline"}
                 className={cn(
                   "size-7",
@@ -519,6 +524,7 @@ export function PreviewToolbar() {
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label="Toggle preview theme"
                 className="relative size-7 text-muted-foreground hover:text-foreground"
                 onClick={() => {
                   const nextTheme = isDark ? "light" : "dark";
@@ -539,7 +545,7 @@ export function PreviewToolbar() {
                 />
               </Button>
             </TooltipPrimitive.Trigger>
-            <TooltipContent side="top">Toggle theme</TooltipContent>
+            <TooltipContent side="top">Toggle preview theme</TooltipContent>
           </TooltipPrimitive.Root>
 
           {process.env.NODE_ENV === "development" && (
@@ -550,6 +556,7 @@ export function PreviewToolbar() {
                     <Button
                       variant="ghost"
                       size="icon"
+                      aria-label="Theme diagnostics"
                       className={cn(
                         "relative size-7",
                         themeDiagnostics.count > 0
@@ -627,28 +634,32 @@ export function PreviewToolbar() {
             </Popover>
           )}
 
-          {process.env.NODE_ENV === "development" && (
-            <TooltipPrimitive.Root>
-              <TooltipPrimitive.Trigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn(
-                    "size-7",
-                    isHmrPreviewEnabled
-                      ? "bg-primary/10 text-primary hover:bg-primary/20"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                  onClick={() => setUseHmrPreview(!isHmrPreviewEnabled)}
-                >
-                  <Zap className="size-4" />
-                </Button>
-              </TooltipPrimitive.Trigger>
-              <TooltipContent side="top">
-                {isHmrPreviewEnabled ? "HMR Preview On" : "HMR Preview Off"}
-              </TooltipContent>
-            </TooltipPrimitive.Root>
-          )}
+          {process.env.NODE_ENV === "development" &&
+            hmrRuntimeStatus === "error" && (
+              <TooltipPrimitive.Root>
+                <TooltipPrimitive.Trigger asChild>
+                  <div
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs",
+                      "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+                    )}
+                  >
+                    <AlertTriangle className="size-3.5" />
+                    <span className="font-medium">HMR warning</span>
+                  </div>
+                </TooltipPrimitive.Trigger>
+                <TooltipContent side="top" className="max-w-sm text-xs">
+                  <div>HMR runtime unavailable. Using bundle fallback.</div>
+                  <div className="mt-1">
+                    Run <code>pnpm dev</code> and verify{" "}
+                    <code>/__workbench_hmr/@vite/client</code>, then refresh.
+                  </div>
+                  {hmrRuntimeMessage ? (
+                    <div className="mt-1 opacity-80">{hmrRuntimeMessage}</div>
+                  ) : null}
+                </TooltipContent>
+              </TooltipPrimitive.Root>
+            )}
 
           <AdvancedSettingsPopover />
         </div>

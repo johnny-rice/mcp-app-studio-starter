@@ -6,6 +6,9 @@ import { detectPackageManager, installArgs } from "./pm";
 
 const ROOT = process.cwd();
 const SERVER_DIR = join(ROOT, "server");
+const POSTINSTALL_GUARD_ENV = "MCP_APP_STUDIO_SERVER_POSTINSTALL";
+
+if (process.env[POSTINSTALL_GUARD_ENV] === "1") process.exit(0);
 
 const hasServer = existsSync(join(SERVER_DIR, "package.json"));
 if (!hasServer) process.exit(0);
@@ -21,6 +24,10 @@ console.log(`\n\x1b[2mInstalling server dependencies (${pm})...\x1b[0m\n`);
 
 const result = spawnSync(cmd.command, cmd.args, {
   cwd: SERVER_DIR,
+  env: {
+    ...process.env,
+    [POSTINSTALL_GUARD_ENV]: "1",
+  },
   stdio: "inherit",
   shell: process.platform === "win32",
 });

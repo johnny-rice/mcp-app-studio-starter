@@ -1,3 +1,4 @@
+import { normalizeToolVisibility } from "../../workbench/metadata/visibility";
 import type { MCPServerConfig, MCPToolConfig } from "./types";
 
 function toSafeFileName(name: string): string {
@@ -17,6 +18,16 @@ function toSafeIdentifier(name: string): string {
 }
 
 export function generateServerEntry(config: MCPServerConfig): string {
+  const widgetResourceMeta = buildWidgetResourceMeta(config);
+  const listingResourceMetaLiteral = toTemplateObjectLiteral(
+    { _meta: widgetResourceMeta.listingMeta },
+    "    ",
+  );
+  const contentResourceMetaLiteral = toTemplateObjectLiteral(
+    widgetResourceMeta.contentMeta,
+    "            ",
+  );
+
   const toolImports = config.tools
     .map((t) => {
       const safeFileName = toSafeFileName(t.name);
@@ -32,6 +43,7 @@ export function generateServerEntry(config: MCPServerConfig): string {
   return `import { createServer } from "node:http";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { RESOURCE_MIME_TYPE } from "@modelcontextprotocol/ext-apps/server";
 import { z } from "zod";
 ${toolImports}
 
@@ -43,20 +55,20 @@ function createAppServer() {
     version: ${JSON.stringify(config.version)},
   });
 
-  // Register widget as resource
+  // Register widget as resource.
+  // Listing-level _meta.ui lets hosts inspect security metadata at connection
+  // time without a resource read round-trip (ext-apps v1.1.0+).
   server.registerResource(
     "widget",
     "ui://widget/main.html",
-    {},
+    ${listingResourceMetaLiteral},
     async () => ({
       contents: [
         {
           uri: "ui://widget/main.html",
-          mimeType: "text/html+skybridge",
+          mimeType: RESOURCE_MIME_TYPE,
           text: WIDGET_HTML,
-          _meta: {
-            "openai/widgetPrefersBorder": true,
-          },
+          _meta: ${contentResourceMetaLiteral},
         },
       ],
     })
@@ -136,6 +148,73 @@ httpServer.listen(port, () => {
 `;
 }
 
+function toTemplateObjectLiteral(value: unknown, indent: string): string {
+  return JSON.stringify(value, null, 2).replace(/\n/g, `\n${indent}`);
+}
+
+function toCspMeta(
+  csp:
+    | NonNullable<
+        NonNullable<MCPServerConfig["widgetResourceMeta"]>["ui"]
+      >["csp"]
+    | undefined,
+): Record<string, unknown> | undefined {
+  if (!csp || typeof csp !== "object") return undefined;
+
+  const result: Record<string, unknown> = {};
+  const cspRecord = csp as Record<string, unknown>;
+
+  for (const key of [
+    "connectDomains",
+    "resourceDomains",
+    "frameDomains",
+    "baseUriDomains",
+  ] as const) {
+    const value = cspRecord[key];
+    if (
+      Array.isArray(value) &&
+      value.every((candidate) => typeof candidate === "string") &&
+      value.length > 0
+    ) {
+      result[key] = value;
+    }
+  }
+
+  return Object.keys(result).length > 0 ? result : undefined;
+}
+
+function buildWidgetResourceMeta(config: MCPServerConfig): {
+  listingMeta: Record<string, unknown>;
+  contentMeta: Record<string, unknown>;
+} {
+  const configuredUi = config.widgetResourceMeta?.ui;
+  const uiMeta: Record<string, unknown> = {
+    prefersBorder: configuredUi?.prefersBorder ?? true,
+  };
+  const cspMeta = toCspMeta(configuredUi?.csp);
+  if (cspMeta) {
+    uiMeta.csp = cspMeta;
+  }
+  if (
+    typeof configuredUi?.domain === "string" &&
+    configuredUi.domain.length > 0
+  ) {
+    uiMeta.domain = configuredUi.domain;
+  }
+
+  const sharedMeta: Record<string, unknown> = {
+    ui: uiMeta,
+  };
+
+  return {
+    listingMeta: sharedMeta,
+    contentMeta: {
+      ...sharedMeta,
+      ui: { ...uiMeta },
+    },
+  };
+}
+
 function generateToolRegistration(tool: MCPToolConfig): string {
   const safeHandler = camelCase(toSafeIdentifier(tool.name));
   const handlerName = `${safeHandler}Handler`;
@@ -159,33 +238,25 @@ function generateToolRegistration(tool: MCPToolConfig): string {
 }
 
 function buildToolMeta(tool: MCPToolConfig): Record<string, unknown> {
-  const legacyOutputTemplate = tool.meta
-    ? ((tool.meta as unknown as Record<string, unknown>)[
-        "openai/outputTemplate"
-      ] as string | undefined)
-    : undefined;
+  const normalizedVisibility = normalizeToolVisibility(
+    (tool.meta ?? {}) as Record<string, unknown>,
+  );
 
-  const meta: Record<string, unknown> = {
-    ui: {
-      resourceUri:
-        tool.meta?.ui?.resourceUri ??
-        legacyOutputTemplate ??
-        "ui://widget/main.html",
-    },
+  const uiMeta: Record<string, unknown> = {
+    resourceUri: tool.meta?.ui?.resourceUri ?? "ui://widget/main.html",
   };
+  if (normalizedVisibility.source === "ui") {
+    uiMeta.visibility = normalizedVisibility.canonical;
+  }
+
+  const meta: Record<string, unknown> = { ui: uiMeta };
 
   if (tool.meta) {
-    if (tool.meta["openai/widgetAccessible"]) {
-      meta["openai/widgetAccessible"] = true;
-    }
-    if (tool.meta["openai/visibility"]) {
-      meta["openai/visibility"] = tool.meta["openai/visibility"];
-    }
-    if (tool.meta["openai/toolInvocation/invoking"]) {
+    if ("openai/toolInvocation/invoking" in tool.meta) {
       meta["openai/toolInvocation/invoking"] =
         tool.meta["openai/toolInvocation/invoking"];
     }
-    if (tool.meta["openai/toolInvocation/invoked"]) {
+    if ("openai/toolInvocation/invoked" in tool.meta) {
       meta["openai/toolInvocation/invoked"] =
         tool.meta["openai/toolInvocation/invoked"];
     }

@@ -77,8 +77,10 @@ interface WorkbenchState {
   isSDKGuideOpen: boolean;
   simulation: SimulationState;
   conversationMode: boolean;
-  useHmrPreview: boolean;
+  hmrRuntimeStatus: "idle" | "checking" | "ready" | "error";
+  hmrRuntimeMessage: string | null;
 
+  setSelectedComponent: (componentId: string) => void;
   setDisplayMode: (mode: DisplayMode) => void;
   setTransitioning: (transitioning: boolean) => void;
   setTheme: (theme: Theme) => void;
@@ -147,7 +149,10 @@ interface WorkbenchState {
   setToolDescriptorMeta: (toolName: string, meta: ToolDescriptorMeta) => void;
   setToolSchemas: (toolName: string, schemas: ToolSchemas) => void;
   setConversationMode: (enabled: boolean) => void;
-  setUseHmrPreview: (enabled: boolean) => void;
+  setHmrRuntimeStatus: (
+    status: "idle" | "checking" | "ready" | "error",
+    message?: string | null,
+  ) => void;
 }
 
 function buildOpenAIGlobals(
@@ -191,11 +196,12 @@ function buildOpenAIGlobals(
 }
 
 const DEFAULT_COMPONENT = componentConfigs[0]?.id ?? "welcome";
+const VALID_COMPONENT_IDS = new Set(
+  componentConfigs.map((config) => config.id),
+);
 
-function getInitialComponent(): string {
-  if (typeof window === "undefined") return DEFAULT_COMPONENT;
-  const params = new URLSearchParams(window.location.search);
-  return params.get("component") ?? DEFAULT_COMPONENT;
+function normalizeComponentId(componentId: string): string {
+  return VALID_COMPONENT_IDS.has(componentId) ? componentId : DEFAULT_COMPONENT;
 }
 
 function getInitialTheme(): Theme {
@@ -203,7 +209,7 @@ function getInitialTheme(): Theme {
 }
 
 export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
-  selectedComponent: getInitialComponent(),
+  selectedComponent: DEFAULT_COMPONENT,
   displayMode: "inline",
   previousDisplayMode: "inline",
   theme: getInitialTheme(),
@@ -234,7 +240,10 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
   isSDKGuideOpen: false,
   simulation: DEFAULT_SIMULATION_STATE,
   conversationMode: false,
-  useHmrPreview: true,
+  hmrRuntimeStatus: "idle",
+  hmrRuntimeMessage: null,
+  setSelectedComponent: (componentId) =>
+    set(() => ({ selectedComponent: normalizeComponentId(componentId) })),
   setDisplayMode: (mode) =>
     set((state) => {
       if (mode === "fullscreen" && state.displayMode !== "fullscreen") {
@@ -357,7 +366,8 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
   setSDKGuideOpen: (open) => set(() => ({ isSDKGuideOpen: open })),
   setResizableWidth: (width) => set(() => ({ resizableWidth: width })),
   setConversationMode: (enabled) => set(() => ({ conversationMode: enabled })),
-  setUseHmrPreview: (enabled) => set(() => ({ useHmrPreview: enabled })),
+  setHmrRuntimeStatus: (status, message = null) =>
+    set(() => ({ hmrRuntimeStatus: status, hmrRuntimeMessage: message })),
   selectSimTool: (toolName) =>
     set((state) => ({
       simulation: { ...state.simulation, selectedTool: toolName },
@@ -705,4 +715,7 @@ export const useServerUrl = () =>
   useWorkbenchStore((s) => s.mockConfig.serverUrl);
 export const useConversationMode = () =>
   useWorkbenchStore((s) => s.conversationMode);
-export const useHmrPreview = () => useWorkbenchStore((s) => s.useHmrPreview);
+export const useHmrRuntimeStatus = () =>
+  useWorkbenchStore((s) => s.hmrRuntimeStatus);
+export const useHmrRuntimeMessage = () =>
+  useWorkbenchStore((s) => s.hmrRuntimeMessage);

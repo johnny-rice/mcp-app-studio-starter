@@ -35,8 +35,6 @@ export function useWorkbenchPersistence() {
     if (prefs.safeAreaInsets) store.setSafeAreaInsets(prefs.safeAreaInsets);
     if (prefs.locale) store.setLocale(prefs.locale);
     if (prefs.previewTheme) store.setPreviewTheme(prefs.previewTheme);
-    if (prefs.useHmrPreview !== undefined)
-      store.setUseHmrPreview(prefs.useHmrPreview);
     if (prefs.isLeftPanelOpen !== undefined)
       store.setLeftPanelOpen(prefs.isLeftPanelOpen);
     if (!isDemoMode && prefs.isRightPanelOpen !== undefined)
@@ -54,15 +52,17 @@ export function useWorkbenchPersistence() {
 
     isUpdatingFromUrl.current = true;
     const urlState = parseUrlParams(searchParams);
+    const initialComponentId = urlState.component ?? store.selectedComponent;
+    if (urlState.component) store.setSelectedComponent(initialComponentId);
     if (urlState.mode) store.setDisplayMode(urlState.mode);
     if (urlState.device) store.setDeviceType(urlState.device);
     if (urlState.theme) store.setTheme(urlState.theme);
     isUpdatingFromUrl.current = false;
 
     // Initialize toolInput with component's defaultProps if empty
-    const currentToolInput = store.toolInput;
+    const currentToolInput = useWorkbenchStore.getState().toolInput;
     if (Object.keys(currentToolInput).length === 0) {
-      const component = getComponent(store.selectedComponent);
+      const component = getComponent(initialComponentId);
       if (component?.defaultProps) {
         store.setToolInput(component.defaultProps);
       }
@@ -78,6 +78,7 @@ export function useWorkbenchPersistence() {
       mode: store.displayMode,
       device: store.deviceType,
       theme: store.theme,
+      component: store.selectedComponent,
     };
 
     const currentSearch = searchParams.toString();
@@ -91,7 +92,14 @@ export function useWorkbenchPersistence() {
     if (currentSearch !== newSearch) {
       router.replace(`?${newSearch}`, { scroll: false });
     }
-  }, [store.displayMode, store.deviceType, store.theme, router, searchParams]);
+  }, [
+    store.displayMode,
+    store.deviceType,
+    store.theme,
+    store.selectedComponent,
+    router,
+    searchParams,
+  ]);
 
   useEffect(() => {
     if (!isInitialized.current) return;
@@ -105,7 +113,6 @@ export function useWorkbenchPersistence() {
         collapsedSections: store.collapsedSections,
         isLeftPanelOpen: store.isLeftPanelOpen,
         isRightPanelOpen: store.isRightPanelOpen,
-        useHmrPreview: store.useHmrPreview,
       });
     }, 500);
 
@@ -118,7 +125,6 @@ export function useWorkbenchPersistence() {
     store.collapsedSections,
     store.isLeftPanelOpen,
     store.isRightPanelOpen,
-    store.useHmrPreview,
   ]);
 
   useEffect(() => {

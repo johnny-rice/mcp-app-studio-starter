@@ -38,6 +38,16 @@ describe("generateIframeHtml", () => {
     assert.equal(html.includes("window.__initOpenAIGlobals"), true);
   });
 
+  it("includes optional checkout/open-in-app extension methods in the shim", () => {
+    const html = generateIframeHtml({
+      widgetBundle: "console.log('widget')",
+      initialGlobals: TEST_GLOBALS,
+    });
+
+    assert.equal(html.includes('callMethod("setOpenInAppUrl"'), true);
+    assert.equal(html.includes('callMethod("requestCheckout"'), true);
+  });
+
   it("omits the OpenAI shim when includeOpenAIShim=false", () => {
     const html = generateIframeHtml({
       widgetBundle: "console.log('widget')",
@@ -83,15 +93,18 @@ describe("generateIframeHtml", () => {
     );
   });
 
-  it("keeps iframe html/body background transparent for rounded host clipping", () => {
+  it("applies preview surface background token to html/body/root", () => {
     const html = generateIframeHtml({
       widgetBundle: "console.log('widget')",
       initialGlobals: TEST_GLOBALS,
       useTailwindCdn: false,
     });
 
-    assert.equal(html.includes("background-color: transparent;"), true);
-    assert.equal(html.includes("background-color: var(--background);"), false);
+    assert.equal(
+      html.includes("background-color: var(--preview-bg) !important;"),
+      true,
+    );
+    assert.equal(html.includes("background-color: transparent;"), false);
   });
 
   it("uses OKLCH token defaults compatible with demo.css", () => {
@@ -140,7 +153,7 @@ describe("generateIframeHtml", () => {
       useTailwindCdn: true,
     });
 
-    assert.equal(html.includes("--border: oklch(1 0 0 / 5%);"), true);
+    assert.equal(html.includes("--border: oklch(1 0 0 / 10%);"), true);
     assert.equal(
       html.includes(
         "color-mix(in oklch, var(--border) calc(<alpha-value> * 100%), transparent)",
@@ -160,40 +173,28 @@ describe("generateIframeHtml", () => {
     assert.equal(html.includes('[data-theme="dark"] .leaflet-tile'), true);
   });
 
-  it("syncs --background from the host iframe element into srcdoc tokens", () => {
-    const html = generateIframeHtml({
+  it("uses theme class and data-theme attributes from initial globals", () => {
+    const darkHtml = generateIframeHtml({
       widgetBundle: "console.log('widget')",
-      initialGlobals: TEST_GLOBALS,
+      initialGlobals: { ...TEST_GLOBALS, theme: "dark" },
       useTailwindCdn: false,
     });
 
-    assert.equal(html.includes('getPropertyValue("--background")'), true);
     assert.equal(
-      html.includes(
-        'root.style.setProperty("--background", effectiveBackground)',
-      ),
+      darkHtml.includes('<html lang="en-US" class="dark" data-theme="dark">'),
       true,
     );
   });
 
-  it("syncs concrete host surface color into iframe + srcdoc when available", () => {
+  it("defines preview surface variables for light and dark themes", () => {
     const html = generateIframeHtml({
       widgetBundle: "console.log('widget')",
       initialGlobals: TEST_GLOBALS,
       useTailwindCdn: false,
     });
 
-    assert.equal(
-      html.includes("hostWindow.getComputedStyle(element).backgroundColor"),
-      true,
-    );
-    assert.equal(
-      html.includes(
-        "frame.style.backgroundColor = hostBackgroundColor || effectiveBackground",
-      ),
-      true,
-    );
-    assert.equal(html.includes("var effectiveBackground ="), true);
+    assert.equal(html.includes("--preview-bg: oklch(1 0 0);"), true);
+    assert.equal(html.includes("--preview-bg: oklch(0.205 0 0);"), true);
   });
 });
 

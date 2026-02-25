@@ -80,6 +80,15 @@ describe("WidgetIframeHost bridge lifecycle regression", () => {
     assert.deepEqual(deps, ["widgetBundle", "cssBundle", "demoMode", "hmrSrc"]);
   });
 
+  it("pushes globals updates over the bridge so theme changes work in srcDoc fallback mode", () => {
+    const source = fs.readFileSync(TARGET_FILE, "utf8");
+
+    assert.match(
+      source,
+      /useEffect\(\(\) => \{\n\s*if \(bridgeRef\.current\) \{\n\s*bridgeRef\.current\.sendGlobals\(globals\);\n\s*\}\n\s*\}, \[globals\]\);/,
+    );
+  });
+
   it("keeps AppBridge connection effect independent from store/callback churn", () => {
     const source = fs.readFileSync(TARGET_FILE, "utf8");
     const deps = getAppBridgeLayoutEffectDeps(source);

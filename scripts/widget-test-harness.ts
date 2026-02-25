@@ -154,6 +154,17 @@ window.openai = {
   },
   requestModal: async function(options) {
     console.log('[mock-openai] requestModal:', options);
+  },
+  setOpenInAppUrl: function(args) {
+    console.log('[mock-openai] setOpenInAppUrl:', args);
+  },
+  requestCheckout: async function(request) {
+    console.log('[mock-openai] requestCheckout (beta):', request);
+    return {
+      status: 'completed',
+      beta: true,
+      requestId: request?.id || 'mock-checkout-id'
+    };
   }
 };
 

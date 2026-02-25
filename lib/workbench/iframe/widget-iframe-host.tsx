@@ -19,6 +19,8 @@ import { handleMockToolCall } from "../mock-responses";
 import { useOpenAIGlobals, useWorkbenchStore } from "../store";
 import {
   type CallToolResponse,
+  type CheckoutRequest,
+  type CheckoutResult,
   DEFAULT_TOOL_CONFIG,
   type DisplayMode,
   type ModalOptions,
@@ -136,6 +138,7 @@ export function WidgetIframeHost({
   const setIntrinsicHeight = useWorkbenchStore((s) => s.setIntrinsicHeight);
   const setView = useWorkbenchStore((s) => s.setView);
   const globalsRef = useRef(globals);
+  const openInAppUrlRef = useRef<string | null>(null);
   globalsRef.current = globals;
 
   const handleCallTool = useCallback(
@@ -144,6 +147,7 @@ export function WidgetIframeHost({
       args: Record<string, unknown>,
     ): Promise<CallToolResponse> => {
       const currentState = useWorkbenchStore.getState();
+      openInAppUrlRef.current = null;
 
       addConsoleEntry({
         type: "callTool",
@@ -549,6 +553,45 @@ export function WidgetIframeHost({
     [addConsoleEntry],
   );
 
+  const handleSetOpenInAppUrl = useCallback(
+    (args: { href: string }) => {
+      openInAppUrlRef.current = args.href;
+      addConsoleEntry({
+        type: "setOpenInAppUrl",
+        method: `setOpenInAppUrl("${args.href}")`,
+        args,
+        result: {
+          registered: true,
+          note: "Open in App URL registered for current tool-call lifecycle.",
+        },
+      });
+    },
+    [addConsoleEntry],
+  );
+
+  const handleRequestCheckout = useCallback(
+    async (request: CheckoutRequest): Promise<CheckoutResult> => {
+      const result: CheckoutResult = {
+        status: "completed",
+        beta: true,
+        requestId:
+          typeof request.id === "string"
+            ? request.id
+            : `checkout_${Date.now().toString(36)}`,
+      };
+
+      addConsoleEntry({
+        type: "requestCheckout",
+        method: "requestCheckout (beta)",
+        args: request,
+        result,
+      });
+
+      return result;
+    },
+    [addConsoleEntry],
+  );
+
   const handleCallToolRef = useRef(handleCallTool);
   useEffect(() => {
     handleCallToolRef.current = handleCallTool;
@@ -576,6 +619,8 @@ export function WidgetIframeHost({
       requestModal: handleRequestModal,
       uploadFile: handleUploadFile,
       getFileDownloadUrl: handleGetFileDownloadUrl,
+      setOpenInAppUrl: handleSetOpenInAppUrl,
+      requestCheckout: handleRequestCheckout,
     }),
     [
       handleCallTool,
@@ -588,6 +633,8 @@ export function WidgetIframeHost({
       handleRequestModal,
       handleUploadFile,
       handleGetFileDownloadUrl,
+      handleSetOpenInAppUrl,
+      handleRequestCheckout,
     ],
   );
   const handlersRef = useRef(handlers);

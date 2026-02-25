@@ -141,6 +141,9 @@ export const POICard = memo(function POICard({
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label={
+                    isFavorite ? "Remove from favorites" : "Add to favorites"
+                  }
                   className="size-9 shrink-0 rounded-full"
                   onClick={(e) => {
                     e.stopPropagation();
