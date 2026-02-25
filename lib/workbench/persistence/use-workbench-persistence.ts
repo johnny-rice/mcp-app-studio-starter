@@ -52,16 +52,17 @@ export function useWorkbenchPersistence() {
 
     isUpdatingFromUrl.current = true;
     const urlState = parseUrlParams(searchParams);
-    if (urlState.component) store.setSelectedComponent(urlState.component);
+    const initialComponentId = urlState.component ?? store.selectedComponent;
+    if (urlState.component) store.setSelectedComponent(initialComponentId);
     if (urlState.mode) store.setDisplayMode(urlState.mode);
     if (urlState.device) store.setDeviceType(urlState.device);
     if (urlState.theme) store.setTheme(urlState.theme);
     isUpdatingFromUrl.current = false;
 
     // Initialize toolInput with component's defaultProps if empty
-    const currentToolInput = store.toolInput;
+    const currentToolInput = useWorkbenchStore.getState().toolInput;
     if (Object.keys(currentToolInput).length === 0) {
-      const component = getComponent(store.selectedComponent);
+      const component = getComponent(initialComponentId);
       if (component?.defaultProps) {
         store.setToolInput(component.defaultProps);
       }

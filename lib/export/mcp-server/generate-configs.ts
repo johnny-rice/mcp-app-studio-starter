@@ -14,6 +14,7 @@ export function generatePackageJson(config: MCPServerConfig): string {
     },
     dependencies: {
       "@modelcontextprotocol/sdk": "^1.20.2",
+      "@modelcontextprotocol/ext-apps": "^1.1.2",
       zod: "^3.25.76",
     },
     devDependencies: {
