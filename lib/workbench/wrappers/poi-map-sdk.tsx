@@ -34,7 +34,6 @@ type View = {
   mode: "modal" | "inline";
   params: Record<string, unknown> | null;
 };
-export { mergePOIMapWidgetState };
 
 /**
  * Workbench + export wrapper for the POI map widget.

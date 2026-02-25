@@ -21,6 +21,22 @@ export interface MCPServerConfig {
   tools: MCPToolConfig[];
   widgetHtml?: string;
   widgetUrl?: string;
+  widgetResourceMeta?: WidgetResourceMeta;
+}
+
+export interface WidgetResourceCsp {
+  connectDomains?: string[];
+  resourceDomains?: string[];
+  frameDomains?: string[];
+  baseUriDomains?: string[];
+}
+
+export interface WidgetResourceMeta {
+  ui?: {
+    csp?: WidgetResourceCsp;
+    prefersBorder?: boolean;
+    domain?: string;
+  };
 }
 
 export interface MCPServerGeneratorOptions {

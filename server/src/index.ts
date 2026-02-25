@@ -2,6 +2,7 @@ import fs from "node:fs";
 import { createServer } from "node:http";
 import net from "node:net";
 import path from "node:path";
+import { RESOURCE_MIME_TYPE } from "@modelcontextprotocol/ext-apps/server";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
@@ -24,18 +25,31 @@ function createAppServer() {
     version: "1.0.0",
   });
 
-  server.registerResource("widget", "ui://widget/main.html", {}, async () => ({
-    contents: [
-      {
-        uri: "ui://widget/main.html",
-        mimeType: "text/html+skybridge",
-        text: WIDGET_HTML,
-        _meta: {
-          "openai/widgetPrefersBorder": true,
+  server.registerResource(
+    "widget",
+    "ui://widget/main.html",
+    {
+      _meta: {
+        ui: {
+          prefersBorder: true,
         },
       },
-    ],
-  }));
+    },
+    async () => ({
+      contents: [
+        {
+          uri: "ui://widget/main.html",
+          mimeType: RESOURCE_MIME_TYPE,
+          text: WIDGET_HTML,
+          _meta: {
+            ui: {
+              prefersBorder: true,
+            },
+          },
+        },
+      ],
+    }),
+  );
 
   server.registerTool(
     "example_tool",
@@ -49,7 +63,6 @@ function createAppServer() {
         ui: {
           resourceUri: "ui://widget/main.html",
         },
-        "openai/widgetAccessible": true,
         "openai/toolInvocation/invoking": "Processing...",
         "openai/toolInvocation/invoked": "Done",
       },

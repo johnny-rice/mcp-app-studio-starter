@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import type { ToolDescriptorMeta } from "../../workbench/mock-config/types";
 import { generateConfigFiles } from "./generate-configs";
 import { generateServerEntry } from "./generate-server";
 import { generateToolFiles } from "./generate-tools";
@@ -93,17 +94,7 @@ export function extractToolsFromMockConfig(
         openWorldHint?: boolean;
         idempotentHint?: boolean;
       };
-      descriptorMeta?: {
-        ui?: { resourceUri?: string };
-        /**
-         * @deprecated Legacy ChatGPT Apps SDK key. Prefer `ui.resourceUri`.
-         */
-        "openai/outputTemplate"?: string;
-        "openai/widgetAccessible"?: boolean;
-        "openai/visibility"?: "public" | "private";
-        "openai/toolInvocation/invoking"?: string;
-        "openai/toolInvocation/invoked"?: string;
-      };
+      descriptorMeta?: ToolDescriptorMeta;
       schemas?: {
         inputSchema?: Record<string, unknown>;
         outputSchema?: Record<string, unknown>;
@@ -126,26 +117,7 @@ export function extractToolsFromMockConfig(
       inputSchema: toolConfig.schemas?.inputSchema,
       outputSchema: toolConfig.schemas?.outputSchema,
       annotations: toolConfig.annotations,
-      meta: (() => {
-        const meta = toolConfig.descriptorMeta;
-        if (!meta) return meta;
-
-        // One-way migration shim: accept legacy `openai/outputTemplate` on input,
-        // but normalize to the MCP-standard `ui.resourceUri`.
-        const legacy = (meta as Record<string, unknown>)[
-          "openai/outputTemplate"
-        ];
-        if (typeof legacy === "string") {
-          return {
-            ...meta,
-            ui: {
-              ...(meta.ui ?? {}),
-              resourceUri: meta.ui?.resourceUri ?? legacy,
-            },
-          };
-        }
-        return meta;
-      })(),
+      meta: toolConfig.descriptorMeta,
       defaultResponse: activeVariant?.response,
     });
   }

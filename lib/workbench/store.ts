@@ -77,7 +77,8 @@ interface WorkbenchState {
   isSDKGuideOpen: boolean;
   simulation: SimulationState;
   conversationMode: boolean;
-  useHmrPreview: boolean;
+  hmrRuntimeStatus: "idle" | "checking" | "ready" | "error";
+  hmrRuntimeMessage: string | null;
 
   setDisplayMode: (mode: DisplayMode) => void;
   setTransitioning: (transitioning: boolean) => void;
@@ -147,7 +148,10 @@ interface WorkbenchState {
   setToolDescriptorMeta: (toolName: string, meta: ToolDescriptorMeta) => void;
   setToolSchemas: (toolName: string, schemas: ToolSchemas) => void;
   setConversationMode: (enabled: boolean) => void;
-  setUseHmrPreview: (enabled: boolean) => void;
+  setHmrRuntimeStatus: (
+    status: "idle" | "checking" | "ready" | "error",
+    message?: string | null,
+  ) => void;
 }
 
 function buildOpenAIGlobals(
@@ -234,7 +238,8 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
   isSDKGuideOpen: false,
   simulation: DEFAULT_SIMULATION_STATE,
   conversationMode: false,
-  useHmrPreview: true,
+  hmrRuntimeStatus: "idle",
+  hmrRuntimeMessage: null,
   setDisplayMode: (mode) =>
     set((state) => {
       if (mode === "fullscreen" && state.displayMode !== "fullscreen") {
@@ -357,7 +362,8 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
   setSDKGuideOpen: (open) => set(() => ({ isSDKGuideOpen: open })),
   setResizableWidth: (width) => set(() => ({ resizableWidth: width })),
   setConversationMode: (enabled) => set(() => ({ conversationMode: enabled })),
-  setUseHmrPreview: (enabled) => set(() => ({ useHmrPreview: enabled })),
+  setHmrRuntimeStatus: (status, message = null) =>
+    set(() => ({ hmrRuntimeStatus: status, hmrRuntimeMessage: message })),
   selectSimTool: (toolName) =>
     set((state) => ({
       simulation: { ...state.simulation, selectedTool: toolName },
@@ -705,4 +711,7 @@ export const useServerUrl = () =>
   useWorkbenchStore((s) => s.mockConfig.serverUrl);
 export const useConversationMode = () =>
   useWorkbenchStore((s) => s.conversationMode);
-export const useHmrPreview = () => useWorkbenchStore((s) => s.useHmrPreview);
+export const useHmrRuntimeStatus = () =>
+  useWorkbenchStore((s) => s.hmrRuntimeStatus);
+export const useHmrRuntimeMessage = () =>
+  useWorkbenchStore((s) => s.hmrRuntimeMessage);

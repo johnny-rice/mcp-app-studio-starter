@@ -106,7 +106,3 @@ export function OnboardingModal() {
     </Dialog>
   );
 }
-
-export function resetOnboarding() {
-  localStorage.removeItem(ONBOARDING_KEY);
-}

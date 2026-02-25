@@ -86,6 +86,18 @@ export interface GetFileDownloadUrlResponse {
   downloadUrl: string;
 }
 
+export interface SetOpenInAppUrlArgs {
+  href: string;
+}
+
+export interface CheckoutRequest {
+  [key: string]: unknown;
+}
+
+export interface CheckoutResult {
+  [key: string]: unknown;
+}
+
 export interface OpenAIAPI {
   callTool: (
     name: string,
@@ -104,6 +116,8 @@ export interface OpenAIAPI {
   getFileDownloadUrl: (args: {
     fileId: string;
   }) => Promise<GetFileDownloadUrlResponse>;
+  setOpenInAppUrl: (args: SetOpenInAppUrlArgs) => void;
+  requestCheckout: (request: CheckoutRequest) => Promise<CheckoutResult>;
 }
 
 export type WindowOpenAI = OpenAIGlobals & OpenAIAPI;
@@ -141,6 +155,8 @@ export type ConsoleEntryType =
   | "requestModal"
   | "uploadFile"
   | "getFileDownloadUrl"
+  | "setOpenInAppUrl"
+  | "requestCheckout"
   | "event";
 
 export interface ConsoleEntry {
@@ -150,18 +166,6 @@ export interface ConsoleEntry {
   method: string;
   args?: unknown;
   result?: unknown;
-}
-
-export type ComponentCategory = "cards" | "lists" | "forms" | "data";
-
-export interface WorkbenchComponent {
-  id: string;
-  label: string;
-  description: string;
-  category: ComponentCategory;
-  getBundle: () => string;
-  defaultToolInput: Record<string, unknown>;
-  defaultToolOutput: Record<string, unknown>;
 }
 
 export interface DevicePreset {

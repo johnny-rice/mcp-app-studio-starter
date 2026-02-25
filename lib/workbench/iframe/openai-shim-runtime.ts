@@ -67,8 +67,9 @@ function updateThemeClass(theme: OpenAIGlobals["theme"] | undefined) {
   window.dispatchEvent(new Event("themechange"));
 }
 
-export function installOpenAIShim(targetWindow: OpenAIShimWindow = window) {
-  if (targetWindow.openai) return;
+export function installOpenAIShim(targetWindow: Window = window) {
+  const shimWindow = targetWindow as OpenAIShimWindow;
+  if (shimWindow.openai) return;
 
   const pendingCalls = new Map<
     string,
@@ -84,7 +85,7 @@ export function installOpenAIShim(targetWindow: OpenAIShimWindow = window) {
         resolve: resolve as (value: unknown) => void,
         reject,
       });
-      window.parent.postMessage(
+      shimWindow.parent.postMessage(
         {
           type: "OPENAI_METHOD_CALL",
           id,
@@ -130,7 +131,7 @@ export function installOpenAIShim(targetWindow: OpenAIShimWindow = window) {
     }
   }
 
-  targetWindow.addEventListener("message", handleMessage);
+  shimWindow.addEventListener("message", handleMessage);
 
   const api: OpenAIAPI = {
     callTool: async (name, args) => callMethod("callTool", [name, args]),
@@ -155,9 +156,14 @@ export function installOpenAIShim(targetWindow: OpenAIShimWindow = window) {
     uploadFile: async (file) => callMethod("uploadFile", [file]),
     getFileDownloadUrl: async (args) =>
       callMethod("getFileDownloadUrl", [args]),
+    setOpenInAppUrl: (args) => {
+      void callMethod("setOpenInAppUrl", [args]);
+    },
+    requestCheckout: async (request) =>
+      callMethod("requestCheckout", [request]),
   };
 
-  Object.defineProperty(targetWindow, "openai", {
+  Object.defineProperty(shimWindow, "openai", {
     value: Object.assign(
       Object.create(null, {
         theme: { get: () => globals.theme, enumerable: true },
@@ -186,9 +192,9 @@ export function installOpenAIShim(targetWindow: OpenAIShimWindow = window) {
   // before ES modules execute. The preview.html inline script caches those
   // globals so we can hydrate immediately instead of waiting for the next
   // postMessage round-trip.
-  const cached = targetWindow.__OPENAI_INITIAL_GLOBALS;
+  const cached = shimWindow.__OPENAI_INITIAL_GLOBALS;
   if (cached) {
     applyGlobals({ ...DEFAULT_GLOBALS, ...cached });
-    delete targetWindow.__OPENAI_INITIAL_GLOBALS;
+    delete shimWindow.__OPENAI_INITIAL_GLOBALS;
   }
 }

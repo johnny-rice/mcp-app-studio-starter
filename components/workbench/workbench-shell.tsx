@@ -160,7 +160,7 @@ export function WorkbenchShell() {
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Toggle theme"
+            aria-label="Toggle workbench theme"
             aria-pressed={isDark}
             className="relative size-7 rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             onClick={toggleTheme}

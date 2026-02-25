@@ -31,6 +31,12 @@ export type {
 
 export { imageBlock, textBlock } from "mcp-app-studio/core";
 export {
+  type CheckoutOutcome,
+  type CheckoutRequest,
+  requestCheckout,
+  setOpenInAppUrl,
+} from "./checkout";
+export {
   type HostModalOptions,
   type OpenModalResult,
   openModal,

@@ -6,7 +6,8 @@ The workbench is a **local MCP Apps host simulator** for developing embedded UIs
 - The host-side bridge uses `AppBridge` from `@modelcontextprotocol/ext-apps`
   (standard `ui/*` JSON-RPC over `postMessage`).
 - We also install a `window.openai` shim inside the iframe so widgets can
-  exercise **ChatGPT-only extensions** (widgetState, file uploads, host modals)
+  exercise **ChatGPT-only extensions** (widgetState, file uploads, host modals,
+  open-in-app links, and checkout beta)
   during development.
 
 ## Theming Contract
@@ -36,4 +37,3 @@ There are two kinds of "OpenAI/ChatGPT" references you may see in workbench code
 
 - Host simulation (MCP + ChatGPT extensions): `lib/workbench/iframe/widget-iframe-host.tsx`
 - ChatGPT extensions shim inside the iframe: `lib/workbench/iframe/generate-iframe-html.ts`
-

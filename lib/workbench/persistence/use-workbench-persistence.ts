@@ -35,8 +35,6 @@ export function useWorkbenchPersistence() {
     if (prefs.safeAreaInsets) store.setSafeAreaInsets(prefs.safeAreaInsets);
     if (prefs.locale) store.setLocale(prefs.locale);
     if (prefs.previewTheme) store.setPreviewTheme(prefs.previewTheme);
-    if (prefs.useHmrPreview !== undefined)
-      store.setUseHmrPreview(prefs.useHmrPreview);
     if (prefs.isLeftPanelOpen !== undefined)
       store.setLeftPanelOpen(prefs.isLeftPanelOpen);
     if (!isDemoMode && prefs.isRightPanelOpen !== undefined)
@@ -105,7 +103,6 @@ export function useWorkbenchPersistence() {
         collapsedSections: store.collapsedSections,
         isLeftPanelOpen: store.isLeftPanelOpen,
         isRightPanelOpen: store.isRightPanelOpen,
-        useHmrPreview: store.useHmrPreview,
       });
     }, 500);
 
@@ -118,7 +115,6 @@ export function useWorkbenchPersistence() {
     store.collapsedSections,
     store.isLeftPanelOpen,
     store.isRightPanelOpen,
-    store.useHmrPreview,
   ]);
 
   useEffect(() => {

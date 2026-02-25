@@ -3,6 +3,7 @@ import { openai } from "@ai-sdk/openai";
 import { convertToModelMessages, stepCountIs, streamText } from "ai";
 import { z } from "zod";
 import { checkRateLimit } from "@/lib/integrations/rate-limit/upstash";
+import { validateToolDescriptorMeta } from "@/lib/workbench/metadata/validate-tool-meta";
 
 export const runtime = "edge";
 
@@ -84,6 +85,68 @@ async function getMCPClient() {
     });
   }
   return mcpClientPromise;
+}
+
+export function createValidateConfigTool(context: WorkbenchContext) {
+  return {
+    description:
+      "Check the current tool configuration for common issues and provide recommendations. Use this to help users debug configuration problems.",
+    inputSchema: z.object({
+      configType: z
+        .enum(["tool_descriptor", "tool_result", "widget_state"])
+        .describe("The type of configuration to validate"),
+    }),
+    execute: async ({ configType }: { configType: string }) => {
+      const issues: Array<{
+        severity: "error" | "warning" | "info";
+        field: string;
+        message: string;
+        suggestion?: string;
+      }> = [];
+
+      const input = context.toolInput || {};
+
+      if (configType === "tool_descriptor") {
+        const meta = (input._meta || {}) as Record<string, unknown>;
+        issues.push(...validateToolDescriptorMeta(meta));
+      }
+
+      if (configType === "tool_result") {
+        const output = context.toolOutput || {};
+
+        if (!output.structuredContent && !output.content) {
+          issues.push({
+            severity: "warning",
+            field: "structuredContent / content",
+            message:
+              "Tool result has neither structuredContent nor content. The model won't receive any data.",
+            suggestion:
+              "Add structuredContent for data the model should see, or content for transcript text.",
+          });
+        }
+      }
+
+      if (configType === "widget_state") {
+        const state = context.widgetState;
+
+        if (state && JSON.stringify(state).length > 16000) {
+          issues.push({
+            severity: "warning",
+            field: "widgetState",
+            message: "Widget state is very large. This may impact performance.",
+            suggestion:
+              "Keep widget state under 4k tokens for optimal performance.",
+          });
+        }
+      }
+
+      return {
+        valid: issues.filter((i) => i.severity === "error").length === 0,
+        issueCount: issues.length,
+        issues,
+      };
+    },
+  };
 }
 
 export async function POST(req: Request) {
@@ -287,122 +350,7 @@ export async function POST(req: Request) {
         },
       },
 
-      validate_config: {
-        description:
-          "Check the current tool configuration for common issues and provide recommendations. Use this to help users debug configuration problems.",
-        inputSchema: z.object({
-          configType: z
-            .enum(["tool_descriptor", "tool_result", "widget_state"])
-            .describe("The type of configuration to validate"),
-        }),
-        execute: async ({ configType }: { configType: string }) => {
-          const issues: Array<{
-            severity: "error" | "warning" | "info";
-            field: string;
-            message: string;
-            suggestion?: string;
-          }> = [];
-
-          const input = context.toolInput || {};
-
-          if (configType === "tool_descriptor") {
-            const meta = (input._meta || {}) as Record<string, unknown>;
-
-            const ui = meta["ui"] as { resourceUri?: unknown } | undefined;
-            const resourceUri =
-              ui && typeof ui === "object"
-                ? (ui as { resourceUri?: unknown }).resourceUri
-                : undefined;
-
-            const hasUiResourceUri = typeof resourceUri === "string";
-            const hasLegacyOutputTemplate =
-              typeof meta["openai/outputTemplate"] === "string";
-
-            if (!hasUiResourceUri && !hasLegacyOutputTemplate) {
-              issues.push({
-                severity: "error",
-                field: "_meta.ui.resourceUri",
-                message:
-                  "Missing output template URI. Your component won't render without this.",
-                suggestion:
-                  "Add _meta.ui.resourceUri pointing to your component HTML resource URI (e.g. ui://widget/main.html).",
-              });
-            }
-
-            if (hasLegacyOutputTemplate && !hasUiResourceUri) {
-              issues.push({
-                severity: "warning",
-                field: '_meta["openai/outputTemplate"]',
-                message:
-                  "Using legacy output template key. Prefer the MCP standard key for cross-host compatibility.",
-                suggestion:
-                  "Move the value to _meta.ui.resourceUri (and remove openai/outputTemplate).",
-              });
-            }
-
-            if (
-              meta["openai/visibility"] === "private" &&
-              !meta["openai/widgetAccessible"]
-            ) {
-              issues.push({
-                severity: "warning",
-                field: '_meta["openai/widgetAccessible"]',
-                message:
-                  "Tool is private but not widget-accessible. Your component won't be able to call this tool.",
-                suggestion:
-                  'Set _meta["openai/widgetAccessible"]: true if the component needs to call this tool.',
-              });
-            }
-
-            const invokingText = meta["openai/toolInvocation/invoking"];
-            if (typeof invokingText === "string" && invokingText.length > 64) {
-              issues.push({
-                severity: "warning",
-                field: '_meta["openai/toolInvocation/invoking"]',
-                message: `Status text is ${invokingText.length} characters. Maximum is 64.`,
-                suggestion:
-                  "Shorten the invoking status text to 64 characters or less.",
-              });
-            }
-          }
-
-          if (configType === "tool_result") {
-            const output = context.toolOutput || {};
-
-            if (!output.structuredContent && !output.content) {
-              issues.push({
-                severity: "warning",
-                field: "structuredContent / content",
-                message:
-                  "Tool result has neither structuredContent nor content. The model won't receive any data.",
-                suggestion:
-                  "Add structuredContent for data the model should see, or content for transcript text.",
-              });
-            }
-          }
-
-          if (configType === "widget_state") {
-            const state = context.widgetState;
-
-            if (state && JSON.stringify(state).length > 16000) {
-              issues.push({
-                severity: "warning",
-                field: "widgetState",
-                message:
-                  "Widget state is very large. This may impact performance.",
-                suggestion:
-                  "Keep widget state under 4k tokens for optimal performance.",
-              });
-            }
-          }
-
-          return {
-            valid: issues.filter((i) => i.severity === "error").length === 0,
-            issueCount: issues.length,
-            issues,
-          };
-        },
-      },
+      validate_config: createValidateConfigTool(context),
     };
 
     const result = streamText({

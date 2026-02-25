@@ -91,7 +91,7 @@ const HOOK_REGISTRY: Record<string, HookInfo> = {
   },
 };
 
-export interface CompatibilityResult {
+interface CompatibilityResult {
   usesChatGPTExtensions: boolean;
   hooksUsed: Array<{
     name: string;

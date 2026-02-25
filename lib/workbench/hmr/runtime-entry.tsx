@@ -93,7 +93,7 @@ function renderError(message: string) {
 }
 
 async function main() {
-  installOpenAIShim(window);
+  installOpenAIShim();
 
   const params = new URLSearchParams(window.location.search);
   const componentId = params.get("component") ?? "welcome";

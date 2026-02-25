@@ -30,7 +30,7 @@ function readPackageDescription(projectRoot: string): string | undefined {
   }
 }
 
-export interface ExportRequestBody {
+interface ExportRequestBody {
   widgetEntryPoint?: string;
   widgetExportName?: string;
   widgetName?: string;

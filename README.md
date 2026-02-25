@@ -185,6 +185,8 @@ optional ChatGPT extensions (`window.openai`) when needed.
 | Host-managed modal | No | Yes (`window.openai.requestModal`) |
 | Widget state persistence | No | Yes |
 | File upload/download | No | Yes |
+| Open in app link | No | Yes (`window.openai.setOpenInAppUrl`) |
+| Instant checkout | No | Yes (`window.openai.requestCheckout`) *(private beta)* |
 
 Use `useCapabilities()` or `useFeature()` to conditionally enable features.
 
@@ -199,6 +201,27 @@ if (typeof window !== "undefined" && window.openai?.requestModal) {
   await window.openai.requestModal({ title: "Details", params: { id } });
 } else {
   // Fallback: local modal state or route navigation
+}
+```
+
+### Checkout Guidance (ChatGPT beta extension)
+
+- `window.openai.requestCheckout(...)` is currently a ChatGPT private beta extension.
+- Treat checkout as optional: feature-detect and provide a fallback (for example, external checkout).
+- If you expose a companion deep link in ChatGPT menus, use `window.openai.setOpenInAppUrl({ href })`.
+
+```ts
+import { requestCheckout, setOpenInAppUrl } from "@/lib/sdk";
+
+setOpenInAppUrl("https://your-app.com/orders/123");
+
+const outcome = await requestCheckout(
+  { id: "checkout_123", payment_mode: "test" },
+  () => window.open("https://your-app.com/checkout/123", "_blank"),
+);
+
+if (outcome.mode === "fallback") {
+  // Non-ChatGPT host or checkout beta unavailable.
 }
 ```
 
@@ -221,6 +244,26 @@ export/
 ```
 
 The exported widget uses the `mcp-app-studio` SDK which automatically detects the host platform and uses the appropriate bridge.
+
+### MCP Metadata Defaults (Export)
+
+- `ui.*` metadata is canonical in exported server code.
+- Legacy metadata keys from older ChatGPT Apps integrations are not supported in exported MCP metadata.
+- Visibility defaults to host default (`["model","app"]`) when no visibility keys are set.
+- Widget resources are emitted with MCP Apps MIME type `text/html;profile=mcp-app`.
+
+Widget resource CSP must use MCP-standard keys:
+
+```ts
+ui: {
+  csp: {
+    connectDomains: ["https://api.example.com"],
+    resourceDomains: ["https://cdn.example.com"],
+    frameDomains: ["https://www.youtube.com"],
+    baseUriDomains: ["https://cdn.example.com"],
+  },
+}
+```
 
 ## Deploying
 

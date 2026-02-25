@@ -24,7 +24,7 @@ describe("IframeComponentContent regression coverage", () => {
     const source = fs.readFileSync(TARGET_FILE, "utf8");
 
     assert.match(source, /if \(showLoading\) \{/);
-    assert.match(source, /if \(!hmrEligible && error\) \{/);
+    assert.match(source, /if \(!hmrActive && error\) \{/);
     assert.match(
       source,
       /<IsolatedThemeWrapper className="flex h-full w-full">[\s\S]*<WidgetIframeHost/,
@@ -38,5 +38,16 @@ describe("IframeComponentContent regression coverage", () => {
       /buildHmrPreviewPath\(selectedComponent, currentLocationSearch\)/,
     );
     assert.match(source, /hmrSrc=\{hmrSrc\}/);
+  });
+
+  it("treats HMR as auto-on in development and falls back without hard-failing when runtime is unavailable", () => {
+    const source = fs.readFileSync(TARGET_FILE, "utf8");
+    assert.match(
+      source,
+      /const hmrEligible =\s*process\.env\.NODE_ENV === "development" && !isDemoMode;/,
+    );
+    assert.doesNotMatch(source, /useHmrPreview/);
+    assert.doesNotMatch(source, /if \(hmrEligible && hmrError\)/);
+    assert.match(source, /setHmrRuntimeStatus\(\s*"error"/);
   });
 });

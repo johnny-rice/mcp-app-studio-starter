@@ -14,6 +14,8 @@ function createBridge() {
     requestModal: async () => {},
     uploadFile: async () => ({ fileId: "file_1" }),
     getFileDownloadUrl: async () => ({ downloadUrl: "https://example.com" }),
+    setOpenInAppUrl: () => {},
+    requestCheckout: async () => ({ status: "completed" }),
   });
 }
 
@@ -53,6 +55,82 @@ describe("WorkbenchMessageBridge", () => {
       await Promise.resolve();
 
       assert.equal(stopped, true);
+    } finally {
+      if (previousWindow === undefined) {
+        delete (globalThis as { window?: unknown }).window;
+      } else {
+        (globalThis as { window: unknown }).window = previousWindow;
+      }
+    }
+  });
+
+  it("routes optional extension methods to host handlers", async () => {
+    let openInAppHref: string | null = null;
+    let checkoutArgs: Record<string, unknown> | null = null;
+
+    const bridge = new WorkbenchMessageBridge({
+      callTool: async () => ({ structuredContent: {} }),
+      setWidgetState: () => {},
+      requestDisplayMode: async ({ mode }) => ({ mode }),
+      sendFollowUpMessage: async () => {},
+      requestClose: () => {},
+      openExternal: () => {},
+      notifyIntrinsicHeight: () => {},
+      requestModal: async () => {},
+      uploadFile: async () => ({ fileId: "file_1" }),
+      getFileDownloadUrl: async () => ({ downloadUrl: "https://example.com" }),
+      setOpenInAppUrl: ({ href }) => {
+        openInAppHref = href;
+      },
+      requestCheckout: async (args) => {
+        checkoutArgs = args;
+        return { status: "completed" };
+      },
+    }) as unknown as {
+      iframe: { contentWindow: unknown } | null;
+      handleMessage: (event: MessageEvent) => void;
+    };
+
+    const sourceWindow = {
+      postMessage: () => {},
+    };
+    bridge.iframe = { contentWindow: sourceWindow };
+
+    const previousWindow = (globalThis as { window?: unknown }).window;
+    (globalThis as { window: unknown }).window = {
+      location: { origin: "http://localhost" },
+    };
+
+    try {
+      bridge.handleMessage({
+        source: sourceWindow,
+        data: {
+          type: "OPENAI_METHOD_CALL",
+          id: "set_open_in_app",
+          method: "setOpenInAppUrl",
+          args: [{ href: "https://example.com/app" }],
+        },
+      } as unknown as MessageEvent);
+
+      bridge.handleMessage({
+        source: sourceWindow,
+        data: {
+          type: "OPENAI_METHOD_CALL",
+          id: "request_checkout",
+          method: "requestCheckout",
+          args: [{ id: "checkout_123", payment_mode: "test" }],
+        },
+      } as unknown as MessageEvent);
+
+      await Promise.resolve();
+      await Promise.resolve();
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+      assert.equal(openInAppHref, "https://example.com/app");
+      assert.deepEqual(checkoutArgs, {
+        id: "checkout_123",
+        payment_mode: "test",
+      });
     } finally {
       if (previousWindow === undefined) {
         delete (globalThis as { window?: unknown }).window;

@@ -1,5 +1,7 @@
 import type {
   CallToolResponse,
+  CheckoutRequest,
+  CheckoutResult,
   DisplayMode,
   GetFileDownloadUrlResponse,
   IframeToParentMessage,
@@ -29,6 +31,8 @@ export interface WorkbenchMessageHandlers {
   getFileDownloadUrl: (args: {
     fileId: string;
   }) => Promise<GetFileDownloadUrlResponse>;
+  setOpenInAppUrl: (args: { href: string }) => void;
+  requestCheckout: (request: CheckoutRequest) => Promise<CheckoutResult>;
 }
 
 export class WorkbenchMessageBridge {
@@ -142,6 +146,15 @@ export class WorkbenchMessageBridge {
       case "getFileDownloadUrl": {
         const [fileArgs] = args as [{ fileId: string }];
         return this.handlers.getFileDownloadUrl(fileArgs);
+      }
+      case "setOpenInAppUrl": {
+        const [openInAppArgs] = args as [{ href: string }];
+        this.handlers.setOpenInAppUrl(openInAppArgs);
+        return undefined;
+      }
+      case "requestCheckout": {
+        const [request] = args as [CheckoutRequest];
+        return this.handlers.requestCheckout(request);
       }
       default:
         throw new Error(`Unknown method: ${method}`);
