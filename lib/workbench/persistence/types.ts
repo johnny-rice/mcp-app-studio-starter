@@ -10,6 +10,7 @@ export interface UrlState {
   mode: DisplayMode;
   device: DeviceType;
   theme: Theme;
+  component: string;
 }
 
 export interface LocalStoragePreferences {

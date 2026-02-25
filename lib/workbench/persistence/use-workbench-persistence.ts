@@ -52,6 +52,7 @@ export function useWorkbenchPersistence() {
 
     isUpdatingFromUrl.current = true;
     const urlState = parseUrlParams(searchParams);
+    if (urlState.component) store.setSelectedComponent(urlState.component);
     if (urlState.mode) store.setDisplayMode(urlState.mode);
     if (urlState.device) store.setDeviceType(urlState.device);
     if (urlState.theme) store.setTheme(urlState.theme);
@@ -76,6 +77,7 @@ export function useWorkbenchPersistence() {
       mode: store.displayMode,
       device: store.deviceType,
       theme: store.theme,
+      component: store.selectedComponent,
     };
 
     const currentSearch = searchParams.toString();
@@ -89,7 +91,14 @@ export function useWorkbenchPersistence() {
     if (currentSearch !== newSearch) {
       router.replace(`?${newSearch}`, { scroll: false });
     }
-  }, [store.displayMode, store.deviceType, store.theme, router, searchParams]);
+  }, [
+    store.displayMode,
+    store.deviceType,
+    store.theme,
+    store.selectedComponent,
+    router,
+    searchParams,
+  ]);
 
   useEffect(() => {
     if (!isInitialized.current) return;

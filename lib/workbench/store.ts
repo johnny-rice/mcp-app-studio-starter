@@ -80,6 +80,7 @@ interface WorkbenchState {
   hmrRuntimeStatus: "idle" | "checking" | "ready" | "error";
   hmrRuntimeMessage: string | null;
 
+  setSelectedComponent: (componentId: string) => void;
   setDisplayMode: (mode: DisplayMode) => void;
   setTransitioning: (transitioning: boolean) => void;
   setTheme: (theme: Theme) => void;
@@ -195,11 +196,12 @@ function buildOpenAIGlobals(
 }
 
 const DEFAULT_COMPONENT = componentConfigs[0]?.id ?? "welcome";
+const VALID_COMPONENT_IDS = new Set(
+  componentConfigs.map((config) => config.id),
+);
 
-function getInitialComponent(): string {
-  if (typeof window === "undefined") return DEFAULT_COMPONENT;
-  const params = new URLSearchParams(window.location.search);
-  return params.get("component") ?? DEFAULT_COMPONENT;
+function normalizeComponentId(componentId: string): string {
+  return VALID_COMPONENT_IDS.has(componentId) ? componentId : DEFAULT_COMPONENT;
 }
 
 function getInitialTheme(): Theme {
@@ -207,7 +209,7 @@ function getInitialTheme(): Theme {
 }
 
 export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
-  selectedComponent: getInitialComponent(),
+  selectedComponent: DEFAULT_COMPONENT,
   displayMode: "inline",
   previousDisplayMode: "inline",
   theme: getInitialTheme(),
@@ -240,6 +242,8 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
   conversationMode: false,
   hmrRuntimeStatus: "idle",
   hmrRuntimeMessage: null,
+  setSelectedComponent: (componentId) =>
+    set(() => ({ selectedComponent: normalizeComponentId(componentId) })),
   setDisplayMode: (mode) =>
     set((state) => {
       if (mode === "fullscreen" && state.displayMode !== "fullscreen") {

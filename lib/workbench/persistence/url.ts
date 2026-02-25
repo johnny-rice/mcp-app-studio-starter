@@ -1,3 +1,4 @@
+import { componentConfigs } from "../component-configs";
 import type { DeviceType, DisplayMode, Theme } from "../types";
 import { URL_PARAMS } from "./constants";
 import type { UrlState } from "./types";
@@ -10,6 +11,14 @@ const VALID_DEVICES: DeviceType[] = [
   "desktop",
   "resizable",
 ];
+const VALID_COMPONENT_IDS = new Set(
+  componentConfigs.map((config) => config.id),
+);
+const DEFAULT_COMPONENT = componentConfigs[0]?.id ?? "welcome";
+
+function normalizeComponentId(componentId: string): string {
+  return VALID_COMPONENT_IDS.has(componentId) ? componentId : DEFAULT_COMPONENT;
+}
 
 export function parseUrlParams(
   searchParams: URLSearchParams,
@@ -31,6 +40,11 @@ export function parseUrlParams(
     result.theme = themeParam;
   }
 
+  const componentParam = searchParams.get(URL_PARAMS.COMPONENT);
+  if (componentParam !== null) {
+    result.component = normalizeComponentId(componentParam);
+  }
+
   return result;
 }
 
@@ -39,5 +53,6 @@ export function buildUrlParams(state: UrlState): URLSearchParams {
   params.set(URL_PARAMS.MODE, state.mode);
   params.set(URL_PARAMS.DEVICE, state.device);
   params.set(URL_PARAMS.THEME, state.theme);
+  params.set(URL_PARAMS.COMPONENT, normalizeComponentId(state.component));
   return params;
 }

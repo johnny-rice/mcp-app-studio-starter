@@ -8,6 +8,7 @@ export const URL_PARAMS = {
   MODE: "mode",
   DEVICE: "device",
   THEME: "theme",
+  COMPONENT: "component",
 } as const;
 
 export const PANEL_AUTO_SAVE_IDS = {
