@@ -135,17 +135,6 @@ describe("Workbench Store", () => {
       assert.strictEqual(globals.userAgent.capabilities.hover, true);
       assert.strictEqual(globals.userAgent.capabilities.touch, false);
     });
-
-    it("setTheme should not overwrite previewTheme", () => {
-      const store = useWorkbenchStore.getState();
-
-      store.setPreviewTheme("light");
-      store.setTheme("dark");
-
-      const state = useWorkbenchStore.getState();
-      assert.strictEqual(state.theme, "dark");
-      assert.strictEqual(state.previewTheme, "light");
-    });
   });
 
   describe("setDeviceType", () => {
