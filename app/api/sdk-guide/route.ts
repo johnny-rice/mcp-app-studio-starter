@@ -365,7 +365,11 @@ export async function POST(req: Request) {
       temperature: 0.7,
     });
 
-    return result.toUIMessageStreamResponse();
+    return result.toUIMessageStreamResponse({
+      // Keep UI message IDs stable across turns to avoid client runtime drift
+      // when tools stream many partial input updates.
+      originalMessages: messages,
+    });
   } catch (error) {
     console.error("Error in SDK Guide API route:", error);
     return new Response(

@@ -36,7 +36,12 @@ function SDKGuideRuntimeProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
-  const runtime = useChatRuntime({ transport });
+  const runtime = useChatRuntime({
+    transport,
+    // Server-side tools complete in a single request; avoid client auto-resubmit
+    // loops that can race and leave the thread stuck in running state.
+    sendAutomaticallyWhen: () => false,
+  });
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
