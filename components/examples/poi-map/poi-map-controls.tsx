@@ -28,6 +28,7 @@ export function MapControls({
             <Button
               variant="secondary"
               size="icon"
+              aria-label="Refresh locations"
               className={MAP_CONTROL_BUTTON_CLASS}
               onClick={onRefresh}
             >
@@ -44,6 +45,7 @@ export function MapControls({
           <Button
             variant="secondary"
             size="icon"
+            aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
             className={MAP_CONTROL_BUTTON_CLASS}
             onClick={onToggleFullscreen}
           >

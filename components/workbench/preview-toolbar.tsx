@@ -221,6 +221,7 @@ function AdvancedSettingsPopover() {
             <Button
               variant="ghost"
               size="icon"
+              aria-label="More options"
               className="size-7 text-muted-foreground hover:text-foreground"
             >
               <MoreHorizontal className="size-4" />
@@ -242,6 +243,7 @@ function AdvancedSettingsPopover() {
               <Button
                 variant="ghost"
                 size="sm"
+                aria-label="Dismiss active view"
                 className="size-6 p-0 text-muted-foreground hover:text-foreground"
                 onClick={() => setView(null)}
                 title="Dismiss view"
@@ -339,6 +341,7 @@ function AdvancedSettingsPopover() {
               <Button
                 variant="ghost"
                 size="sm"
+                aria-label="Clear location"
                 className="size-6 p-0 text-muted-foreground hover:text-foreground"
                 onClick={() => setUserLocation(null)}
                 title="Clear location"
@@ -440,6 +443,7 @@ export function PreviewToolbar() {
                     <Button
                       variant="ghost"
                       size="sm"
+                      aria-label={label}
                       className={cn(
                         "size-7 p-0",
                         deviceType === id
@@ -468,6 +472,7 @@ export function PreviewToolbar() {
                     <Button
                       variant="ghost"
                       size="sm"
+                      aria-label={label}
                       className={cn(
                         "size-7 p-0",
                         displayMode === id
@@ -492,6 +497,7 @@ export function PreviewToolbar() {
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label="Conversation Mode"
                 disabled={displayMode !== "inline"}
                 className={cn(
                   "size-7",
@@ -550,6 +556,7 @@ export function PreviewToolbar() {
                     <Button
                       variant="ghost"
                       size="icon"
+                      aria-label="Theme diagnostics"
                       className={cn(
                         "relative size-7",
                         themeDiagnostics.count > 0

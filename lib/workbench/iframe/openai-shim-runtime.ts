@@ -102,7 +102,7 @@ export function installOpenAIShim(targetWindow: Window = window) {
     globals = nextGlobals;
     const changed = buildChangedGlobals(previousGlobals, globals);
     if (Object.keys(changed).length > 0) {
-      updateThemeClass(changed.previewTheme || changed.theme);
+      updateThemeClass(nextGlobals.previewTheme || nextGlobals.theme);
       dispatchGlobalsChange(changed);
     }
   }
