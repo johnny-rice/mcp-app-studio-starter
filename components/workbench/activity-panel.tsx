@@ -1,7 +1,6 @@
 "use client";
 
-import { Activity, Trash2, Wrench } from "lucide-react";
-import { useState } from "react";
+import { Activity, Download, Trash2, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -9,14 +8,21 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/ui/cn";
-import { useClearConsole, useConsoleLogs } from "@/lib/workbench/store";
+import {
+  useClearConsole,
+  useConsoleLogs,
+  useRightPanelTab,
+  useWorkbenchStore,
+} from "@/lib/workbench/store";
 import { ActivitySection } from "./activity-section";
+import { ExportPanel } from "./export-popover";
 import { MockConfigPanel } from "./mock-config-panel";
 
-type ActivityTab = "activity" | "simulation";
+type ActivityTab = "activity" | "simulation" | "export";
 
 export function ActivityPanel() {
-  const [activeTab, setActiveTab] = useState<ActivityTab>("activity");
+  const activeTab = useRightPanelTab() as ActivityTab;
+  const setActiveTab = useWorkbenchStore((s) => s.setRightPanelTab);
   const consoleLogs = useConsoleLogs();
   const clearConsole = useClearConsole();
   const logCount = consoleLogs.length;
@@ -56,6 +62,19 @@ export function ActivityPanel() {
             <Wrench className="size-3.5" />
             Tools
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("export")}
+            className={cn(
+              "flex items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors",
+              activeTab === "export"
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <Download className="size-3.5" />
+            Export
+          </button>
         </div>
         {activeTab === "activity" && logCount > 0 && (
           <Tooltip>
@@ -83,8 +102,10 @@ export function ActivityPanel() {
               aria-hidden
             />
           </>
-        ) : (
+        ) : activeTab === "simulation" ? (
           <MockConfigPanel />
+        ) : (
+          <ExportPanel />
         )}
       </div>
     </div>

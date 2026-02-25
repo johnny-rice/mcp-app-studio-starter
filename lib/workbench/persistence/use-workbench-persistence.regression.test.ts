@@ -21,4 +21,17 @@ describe("workbench persistence default-props regression", () => {
       /const component = getComponent\(initialComponentId\);/,
     );
   });
+
+  it("applies URL theme to both global and preview theme state", () => {
+    const source = fs.readFileSync(TARGET_FILE, "utf8");
+
+    assert.match(
+      source,
+      /if \(urlState\.theme\) store\.setTheme\(urlState\.theme\);/,
+    );
+    assert.match(
+      source,
+      /if \(urlState\.theme\) store\.setPreviewTheme\(urlState\.theme\);/,
+    );
+  });
 });

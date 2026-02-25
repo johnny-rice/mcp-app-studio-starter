@@ -57,6 +57,7 @@ export function useWorkbenchPersistence() {
     if (urlState.mode) store.setDisplayMode(urlState.mode);
     if (urlState.device) store.setDeviceType(urlState.device);
     if (urlState.theme) store.setTheme(urlState.theme);
+    if (urlState.theme) store.setPreviewTheme(urlState.theme);
     isUpdatingFromUrl.current = false;
 
     // Initialize toolInput with component's defaultProps if empty

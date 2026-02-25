@@ -45,6 +45,8 @@ interface ActiveToolCall {
   cancelFn?: () => void;
 }
 
+export type RightPanelTab = "activity" | "simulation" | "export";
+
 interface WorkbenchState {
   selectedComponent: string;
   displayMode: DisplayMode;
@@ -74,6 +76,7 @@ interface WorkbenchState {
   isConsoleOpen: boolean;
   isLeftPanelOpen: boolean;
   isRightPanelOpen: boolean;
+  rightPanelTab: RightPanelTab;
   isSDKGuideOpen: boolean;
   simulation: SimulationState;
   conversationMode: boolean;
@@ -113,6 +116,7 @@ interface WorkbenchState {
   setConsoleOpen: (open: boolean) => void;
   setLeftPanelOpen: (open: boolean) => void;
   setRightPanelOpen: (open: boolean) => void;
+  setRightPanelTab: (tab: RightPanelTab) => void;
   setSDKGuideOpen: (open: boolean) => void;
   setResizableWidth: (width: number) => void;
   selectSimTool: (toolName: string | null) => void;
@@ -205,6 +209,11 @@ function normalizeComponentId(componentId: string): string {
 }
 
 function getInitialTheme(): Theme {
+  if (typeof document !== "undefined") {
+    return document.documentElement.classList.contains("dark")
+      ? "dark"
+      : "light";
+  }
   return "light";
 }
 
@@ -237,6 +246,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
   isConsoleOpen: false,
   isLeftPanelOpen: true,
   isRightPanelOpen: true,
+  rightPanelTab: "activity",
   isSDKGuideOpen: false,
   simulation: DEFAULT_SIMULATION_STATE,
   conversationMode: false,
@@ -256,7 +266,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
       isTransitioning: transitioning,
       transitionFrom: transitioning ? state.displayMode : null,
     })),
-  setTheme: (theme) => set(() => ({ theme })),
+  setTheme: (theme) => set(() => ({ theme, previewTheme: theme })),
   setPreviewTheme: (theme) => set(() => ({ previewTheme: theme })),
   setLocale: (locale) => set(() => ({ locale })),
   setDeviceType: (type) =>
@@ -363,6 +373,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
   setConsoleOpen: (open) => set(() => ({ isConsoleOpen: open })),
   setLeftPanelOpen: (open) => set(() => ({ isLeftPanelOpen: open })),
   setRightPanelOpen: (open) => set(() => ({ isRightPanelOpen: open })),
+  setRightPanelTab: (tab) => set(() => ({ rightPanelTab: tab })),
   setSDKGuideOpen: (open) => set(() => ({ isSDKGuideOpen: open })),
   setResizableWidth: (width) => set(() => ({ resizableWidth: width })),
   setConversationMode: (enabled) => set(() => ({ conversationMode: enabled })),
@@ -706,6 +717,7 @@ export const useIsLeftPanelOpen = () =>
   useWorkbenchStore((s) => s.isLeftPanelOpen);
 export const useIsRightPanelOpen = () =>
   useWorkbenchStore((s) => s.isRightPanelOpen);
+export const useRightPanelTab = () => useWorkbenchStore((s) => s.rightPanelTab);
 export const useIsSDKGuideOpen = () =>
   useWorkbenchStore((s) => s.isSDKGuideOpen);
 export const useSimulation = () => useWorkbenchStore((s) => s.simulation);

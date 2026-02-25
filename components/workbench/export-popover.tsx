@@ -13,11 +13,6 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { useDemoMode } from "@/hooks/use-demo-mode";
 import { getComponent } from "@/lib/workbench/component-registry";
 import { useSelectedComponent } from "@/lib/workbench/store";
@@ -168,7 +163,7 @@ function CompatibilitySection({
   );
 }
 
-function ExportContent({ isOpen }: { isOpen: boolean }) {
+function ExportContent() {
   const [status, setStatus] = useState<ExportStatus>("idle");
   const [result, setResult] = useState<ExportResult | null>(null);
   const [compatibility, setCompatibility] =
@@ -178,7 +173,7 @@ function ExportContent({ isOpen }: { isOpen: boolean }) {
   const componentEntry = getComponent(selectedComponentId);
 
   useEffect(() => {
-    if (!isOpen || !componentEntry) {
+    if (!componentEntry) {
       setCompatibility(null);
       return;
     }
@@ -209,7 +204,7 @@ function ExportContent({ isOpen }: { isOpen: boolean }) {
     return () => {
       cancelled = true;
     };
-  }, [isOpen, componentEntry]);
+  }, [componentEntry]);
 
   const handleExport = useCallback(async () => {
     if (!componentEntry) {
@@ -345,26 +340,12 @@ function ExportContent({ isOpen }: { isOpen: boolean }) {
   );
 }
 
-export function ExportPopover() {
-  const [isOpen, setIsOpen] = useState(false);
+export function ExportPanel() {
   const isDemoMode = useDemoMode();
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-7 gap-1.5 rounded-md px-2.5 font-medium text-xs"
-        >
-          <Download className="size-3.5" />
-          Export
-        </Button>
-      </PopoverTrigger>
-
-      <PopoverContent align="end" className="w-72 text-xs">
-        {isDemoMode ? <DemoModeContent /> : <ExportContent isOpen={isOpen} />}
-      </PopoverContent>
-    </Popover>
+    <div className="h-full overflow-y-auto px-4 py-3 text-xs">
+      {isDemoMode ? <DemoModeContent /> : <ExportContent />}
+    </div>
   );
 }

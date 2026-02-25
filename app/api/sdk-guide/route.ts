@@ -42,6 +42,10 @@ Focus on helping with MCP Apps development. This includes:
 - Tool definitions, widget state, display modes
 - Cross-platform compatibility between MCP hosts
 
+## Terminology Guardrails
+- MCP stands for Model Context Protocol.
+- Never expand MCP as "Multi-Channel Platform" or any other phrase.
+
 ## Current Workbench Context
 The user is working in an MCP App workbench with the following state:
 - Component: ${context.selectedComponent || "none loaded"}
