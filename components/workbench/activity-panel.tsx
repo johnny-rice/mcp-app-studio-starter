@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Download, Trash2, Wrench } from "lucide-react";
+import { Activity, Trash2, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -15,10 +15,9 @@ import {
   useWorkbenchStore,
 } from "@/lib/workbench/store";
 import { ActivitySection } from "./activity-section";
-import { ExportPanel } from "./export-popover";
 import { MockConfigPanel } from "./mock-config-panel";
 
-type ActivityTab = "activity" | "simulation" | "export";
+type ActivityTab = "activity" | "simulation";
 
 export function ActivityPanel() {
   const activeTab = useRightPanelTab() as ActivityTab;
@@ -62,19 +61,6 @@ export function ActivityPanel() {
             <Wrench className="size-3.5" />
             Tools
           </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("export")}
-            className={cn(
-              "flex items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors",
-              activeTab === "export"
-                ? "bg-muted text-foreground"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <Download className="size-3.5" />
-            Export
-          </button>
         </div>
         {activeTab === "activity" && logCount > 0 && (
           <Tooltip>
@@ -102,10 +88,8 @@ export function ActivityPanel() {
               aria-hidden
             />
           </>
-        ) : activeTab === "simulation" ? (
-          <MockConfigPanel />
         ) : (
-          <ExportPanel />
+          <MockConfigPanel />
         )}
       </div>
     </div>

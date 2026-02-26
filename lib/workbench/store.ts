@@ -45,7 +45,7 @@ interface ActiveToolCall {
   cancelFn?: () => void;
 }
 
-export type RightPanelTab = "activity" | "simulation" | "export";
+export type RightPanelTab = "activity" | "simulation";
 
 interface WorkbenchState {
   selectedComponent: string;

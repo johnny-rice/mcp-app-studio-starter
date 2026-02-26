@@ -13,6 +13,11 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useDemoMode } from "@/hooks/use-demo-mode";
 import { getComponent } from "@/lib/workbench/component-registry";
 import { useSelectedComponent } from "@/lib/workbench/store";
@@ -340,12 +345,29 @@ function ExportContent() {
   );
 }
 
-export function ExportPanel() {
+export function ExportPopover() {
   const isDemoMode = useDemoMode();
 
   return (
-    <div className="h-full overflow-y-auto px-4 py-3 text-xs">
-      {isDemoMode ? <DemoModeContent /> : <ExportContent />}
-    </div>
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-7 gap-1.5 rounded-md px-2.5 font-medium text-xs"
+        >
+          <Download className="size-3.5" />
+          Export
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="end"
+        className="max-h-[70vh] w-96 overflow-y-auto p-0"
+      >
+        <div className="px-4 py-3 text-xs">
+          {isDemoMode ? <DemoModeContent /> : <ExportContent />}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

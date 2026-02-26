@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, MessageCircle, Moon, Sun } from "lucide-react";
+import { MessageCircle, Moon, Sun } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
 import * as React from "react";
@@ -17,6 +17,7 @@ import {
   useSelectedComponent,
   useWorkbenchStore,
 } from "@/lib/workbench/store";
+import { ExportPopover } from "./export-popover";
 import { OnboardingModal } from "./onboarding-modal";
 import { LeftPanelIcon, RightPanelIcon } from "./panel-toggle-icons";
 import { WorkbenchLayout } from "./workbench-layout";
@@ -36,7 +37,6 @@ export function WorkbenchShell() {
   const setDisplayMode = useWorkbenchStore((s) => s.setDisplayMode);
   const setLeftPanelOpen = useWorkbenchStore((s) => s.setLeftPanelOpen);
   const setRightPanelOpen = useWorkbenchStore((s) => s.setRightPanelOpen);
-  const setRightPanelTab = useWorkbenchStore((s) => s.setRightPanelTab);
   const displayMode = useDisplayMode();
   const isLeftPanelOpen = useIsLeftPanelOpen();
   const isRightPanelOpen = useIsRightPanelOpen();
@@ -79,11 +79,6 @@ export function WorkbenchShell() {
   const toggleSDKGuide = React.useCallback(() => {
     setSDKGuideOpen(!isSDKGuideOpen);
   }, [isSDKGuideOpen, setSDKGuideOpen]);
-
-  const openExportPanel = React.useCallback(() => {
-    setRightPanelOpen(true);
-    setRightPanelTab("export");
-  }, [setRightPanelOpen, setRightPanelTab]);
 
   const toggleThemeRef = React.useRef(toggleTheme);
   const toggleFullscreenRef = React.useRef(toggleFullscreen);
@@ -197,15 +192,7 @@ export function WorkbenchShell() {
             <span>Assistant</span>
           </Button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-7 gap-1.5 rounded-md px-2.5 font-medium text-xs"
-            onClick={openExportPanel}
-          >
-            <Download className="size-3.5" />
-            Export
-          </Button>
+          <ExportPopover />
         </div>
       </div>
 
