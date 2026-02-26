@@ -4,8 +4,8 @@ import {
   AlertCircle,
   AlertTriangle,
   CheckCircle2,
+  Copy,
   Download,
-  ExternalLink,
   FolderOpen,
   Loader2,
   Package,
@@ -48,6 +48,36 @@ function formatBytes(bytes: number): string {
 }
 
 function DemoModeContent() {
+  const command = "npx mcp-app-studio my-app";
+  const [copied, setCopied] = useState(false);
+
+  const copy = useCallback(async () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(command);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = command;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "absolute";
+        textarea.style.left = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+      setCopied(true);
+    } catch {
+      // Silently fail - not critical in demo mode
+    }
+  }, [command]);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timeout = window.setTimeout(() => setCopied(false), 1500);
+    return () => window.clearTimeout(timeout);
+  }, [copied]);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
@@ -56,37 +86,42 @@ function DemoModeContent() {
         </div>
         <div>
           <div className="font-medium">Export to Production</div>
-          <div className="text-[11px] text-muted-foreground">
+          <div className="text-muted-foreground text-sm">
             Available when running locally
           </div>
         </div>
       </div>
 
-      <p className="text-[11px] text-muted-foreground leading-relaxed">
+      <p className="text-muted-foreground text-sm leading-relaxed">
         Export bundles your app as a self-contained HTML file with all
         dependencies inlined, ready to deploy as a ChatGPT MCP App or any other
         MCP Apps host.
       </p>
 
       <div className="space-y-2">
-        <div className="font-medium text-[11px] text-muted-foreground">
-          To use export, run locally:
+        <div className="font-medium text-muted-foreground text-sm">
+          All you need to get started:
         </div>
-        <div className="flex items-center gap-2 rounded-md bg-muted px-3 py-2 font-mono text-[11px]">
-          <Terminal className="size-3.5 shrink-0 text-muted-foreground" />
-          <span>npx mcp-app-studio</span>
+        <div className="flex items-center justify-between gap-2 rounded-md bg-muted px-3 py-2.5 font-mono text-sm">
+          <div className="flex min-w-0 items-center gap-2">
+            <Terminal className="size-4 shrink-0 text-muted-foreground" />
+            <code className="truncate">{command}</code>
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => void copy()}
+            className="h-8 gap-1.5 px-2.5 text-sm"
+          >
+            <Copy className="size-3.5" />
+            Copy
+          </Button>
         </div>
       </div>
-
-      <a
-        href="https://www.assistant-ui.com/docs/mcp-app-studio"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-2 font-medium text-[11px] text-primary-foreground transition-colors hover:bg-primary/90"
-      >
-        View Documentation
-        <ExternalLink className="size-3" />
-      </a>
+      {copied && (
+        <p className="text-muted-foreground text-xs">Copied to clipboard.</p>
+      )}
     </div>
   );
 }
@@ -100,7 +135,7 @@ function CompatibilitySection({
 }) {
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+      <div className="flex items-center gap-2 text-muted-foreground text-sm">
         <Loader2 className="size-3 animate-spin" />
         Analyzing compatibility...
       </div>
@@ -115,8 +150,8 @@ function CompatibilitySection({
 
   return (
     <div className="space-y-2 border-t pt-3">
-      <div className="font-medium text-[11px]">Compatibility Notes</div>
-      <div className="space-y-1 text-[11px]">
+      <div className="font-medium text-sm">Compatibility Notes</div>
+      <div className="space-y-1 text-sm">
         <div className="flex items-center gap-1.5">
           {compatibility.usesChatGPTExtensions ? (
             <AlertTriangle className="size-3 text-amber-500" />
@@ -133,14 +168,14 @@ function CompatibilitySection({
 
       {platformSpecificHooks.length > 0 && (
         <div className="mt-2 space-y-1">
-          <div className="text-[10px] text-muted-foreground">
+          <div className="text-muted-foreground text-xs">
             Extension hooks detected:
           </div>
           <div className="flex flex-wrap gap-1">
             {platformSpecificHooks.map((hook) => (
               <span
                 key={hook.name}
-                className={`rounded px-1.5 py-0.5 text-[10px] ${
+                className={`rounded px-1.5 py-0.5 text-xs ${
                   hook.category === "chatgpt-extensions"
                     ? "bg-amber-500/10 text-amber-700 dark:text-amber-400"
                     : "bg-muted text-muted-foreground"
@@ -154,13 +189,13 @@ function CompatibilitySection({
       )}
 
       {compatibility.warnings.length > 0 && (
-        <div className="mt-2 rounded bg-amber-500/10 p-2 text-[10px] text-amber-700 dark:text-amber-400">
+        <div className="mt-2 rounded bg-amber-500/10 p-2 text-amber-700 text-xs dark:text-amber-400">
           {compatibility.warnings[0]}
         </div>
       )}
 
       {platformSpecificHooks.length === 0 && (
-        <p className="mt-1 text-[10px] text-muted-foreground">
+        <p className="mt-1 text-muted-foreground text-xs">
           Your app uses portable hooks and should work across MCP Apps hosts.
         </p>
       )}
@@ -268,7 +303,7 @@ function ExportContent() {
           size="sm"
           onClick={handleExport}
           disabled={status === "exporting"}
-          className="h-7 gap-1.5 text-xs"
+          className="h-8 gap-1.5 text-sm"
         >
           {status === "exporting" ? (
             <>
@@ -286,7 +321,7 @@ function ExportContent() {
 
       {!hasExported && status !== "exporting" && componentEntry && (
         <>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Bundle <span className="font-medium">{componentEntry.label}</span>{" "}
             for production deployment.
           </p>
@@ -305,12 +340,12 @@ function ExportContent() {
           </div>
           <button
             onClick={handleOpenFolder}
-            className="flex w-full items-center justify-between rounded bg-muted px-2 py-1.5 font-mono text-[11px] transition-colors hover:bg-muted/80"
+            className="flex w-full items-center justify-between rounded bg-muted px-2.5 py-2 font-mono text-sm transition-colors hover:bg-muted/80"
           >
             <span>./export/</span>
             <FolderOpen className="size-3.5 text-muted-foreground" />
           </button>
-          <div className="space-y-0.5 text-[11px]">
+          <div className="space-y-0.5 text-sm">
             {result.files.map((f) => (
               <div
                 key={f.relativePath}
@@ -323,7 +358,7 @@ function ExportContent() {
               </div>
             ))}
           </div>
-          <div className="border-t pt-2 text-[11px] text-muted-foreground">
+          <div className="border-t pt-2 text-muted-foreground text-sm">
             Total:{" "}
             {formatBytes(result.files.reduce((sum, f) => sum + f.size, 0))}
           </div>
@@ -336,7 +371,7 @@ function ExportContent() {
             <AlertCircle className="size-3.5" />
             <span>Export failed</span>
           </div>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             {result.errors?.[0] ?? "Unknown error"}
           </p>
         </div>
@@ -364,7 +399,7 @@ export function ExportPopover() {
         align="end"
         className="max-h-[70vh] w-96 overflow-y-auto p-0"
       >
-        <div className="px-4 py-3 text-xs">
+        <div className="px-4 py-3 text-sm">
           {isDemoMode ? <DemoModeContent /> : <ExportContent />}
         </div>
       </PopoverContent>
