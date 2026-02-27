@@ -395,6 +395,7 @@ export function generateIframeHtml(options: IframeHtmlOptions): string {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Widget Preview</title>
+  <script>window.__MCP_HOST__ = true;</script>
   ${useTailwindCdn ? TAILWIND_CDN_SCRIPT : ""}
   ${cssHref ? `<link rel="stylesheet" href="${cssHref}">` : ""}
   <style>${CSS_VARIABLES}</style>
@@ -430,6 +431,7 @@ export function generateEmptyIframeHtml(
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Widget Preview</title>
+  <script>window.__MCP_HOST__ = true;</script>
   ${useTailwindCdn ? TAILWIND_CDN_SCRIPT : ""}
   ${cssHref ? `<link rel="stylesheet" href="${cssHref}">` : ""}
   <style>${CSS_VARIABLES}</style>

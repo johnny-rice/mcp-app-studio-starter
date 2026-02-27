@@ -886,6 +886,7 @@ export function WidgetIframeHost({
         ...style,
       }}
       sandbox="allow-scripts allow-same-origin"
+      data-mcp-host=""
       title="Widget Preview"
     />
   );
