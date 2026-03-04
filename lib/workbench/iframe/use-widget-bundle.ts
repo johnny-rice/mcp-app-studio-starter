@@ -53,6 +53,7 @@ export function buildHmrPreviewPath(
   currentLocationSearch: string,
 ): string {
   const requestParams = new URLSearchParams({ component: componentId });
+  requestParams.set("mcp-host", "");
   if (isDemoBundleRequest(currentLocationSearch)) {
     requestParams.set("demo", "true");
   }
